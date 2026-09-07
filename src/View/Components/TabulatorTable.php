@@ -61,7 +61,7 @@ class TabulatorTable extends Component
         $config = [
             'layout' => config('tabulator.layout'),
             'columns' => $columns,
-            'movableColumns' => true,
+            'movableColumns' => config('tabulator.movable_columns'),
             'paginationSize' => config('tabulator.pagination_size'),
             'paginationSizeSelector' => config('tabulator.pagination_size_selector'),
             'paginationCounter' => config('tabulator.pagination_counter'),

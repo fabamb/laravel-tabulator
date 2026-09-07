@@ -7,6 +7,7 @@ return [
     'stack' => 'js',
 
     'layout' => 'fitColumns',
+    'movable_columns' => true,
 
     //
     'pagination_size' => 10,
@@ -16,8 +17,10 @@ return [
     // Toolbar buttons (<x-tabulator-table :toolbar="[...]" ... />).
     // Per-button override: pass 'class' in the button's own array.
     'toolbar_button_class' => 'btn-secondary',
+    'toolbar_button_size_class' => 'btn-sm',
 
-    // Global search box (<x-tabulator-table :search="true" ... />).
+    // Global search box (<x-tabulator-table :search="true" ... />)
+    'search_size_class' => 'input-group-sm',
     'search_width' => '300px',
     'search_debounce_ms' => 300,
     'search_min_chars' => 2,

@@ -3,7 +3,7 @@
     @if ($toolbar)
     <div class="btn-group">
         @foreach ($toolbar as $key => $btn)
-        <button type="button" class="btn btn-sm {{ $btn['class'] ?? config('tabulator.toolbar_button_class') }}"
+        <button type="button" class="btn {{ config('tabulator.toolbar_button_size_class') }} {{ $btn['class'] ?? config('tabulator.toolbar_button_class') }}"
                 data-tabulator-action="{{ $key }}" data-tabulator-table="{{ $id }}" data-tabulator-url="{{ $btn['url'] ?? '' }}"
                 @php($titleKey = 'tabulator::tabulator.toolbar.'.$key)
                 title="{{ $btn['title'] ?? (\Illuminate\Support\Facades\Lang::has($titleKey) ? __($titleKey) : '') }}">
@@ -14,7 +14,7 @@
     @endif
 
     @if ($search)
-    <div class="input-group input-group-sm ms-auto" style="max-width: {{ config('tabulator.search_width') }};">
+    <div class="input-group {{ config('tabulator.search_size_class') }} ms-auto" style="max-width: {{ config('tabulator.search_width') }};">
         <span class="input-group-text"><i class="{{ config('tabulator.search_icon') }}"></i></span>
         <input type="search" class="form-control" placeholder="{{ __('Search') }}" value="{{ $searchValue }}" data-tabulator-search="{{ $id }}">
     </div>

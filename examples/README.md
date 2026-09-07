@@ -7,6 +7,7 @@ Runnable-shaped snippets for each package feature, referenced from the main [REA
 | [`remote-basic/`](remote-basic/) | Minimal remote table: table class, route, view |
 | [`local-data/`](local-data/) | Client-side table, no `ajax-url` |
 | [`column-filters/`](column-filters/) | Native Tabulator `headerFilter` per column |
+| [`relations/`](relations/) | Column on a `belongsTo` relation (`role.name`), filterable via `whereHas` |
 | [`scopes/`](scopes/) | `addScope()`, per-request query constraints |
 | [`transformers/`](transformers/) | `transformer()`, reshape rows before JSON |
 | [`global-search/`](global-search/) | `search` prop + `searchableFields()` |

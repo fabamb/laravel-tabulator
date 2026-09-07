@@ -106,6 +106,8 @@ abstract class TabulatorTable
      * Supported types (MVP): =, like, <, <=, >, >=, in.
      * Field `__global` is the global search box: OR-`like` across
      * `searchableFields()` instead of AND-ing like a normal filter.
+     * Field with a dot (`relation.column`) filters on a related model
+     * via `whereHas`, e.g. `role.name`.
      */
     protected function applyFilters(Builder $query, array $filters): Builder
     {
@@ -127,6 +129,21 @@ abstract class TabulatorTable
                         }
                     });
                 }
+
+                continue;
+            }
+
+            if (str_contains($field, '.')) {
+                [$relation, $column] = explode('.', $field, 2);
+
+                $query->whereHas($relation, function (Builder $query) use ($column, $type, $value) {
+                    match ($type) {
+                        'like' => $query->where($column, 'like', "%{$value}%"),
+                        'in' => $query->whereIn($column, (array) $value),
+                        '<', '<=', '>', '>=' => $query->where($column, $type, $value),
+                        default => $query->where($column, '=', $value),
+                    };
+                });
 
                 continue;
             }

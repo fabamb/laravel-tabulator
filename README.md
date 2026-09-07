@@ -180,6 +180,37 @@ In remote mode, filters are sent to the server as `{field, type, value}` tuples 
 
 Full example: [`examples/column-filters/`](examples/column-filters/).
 
+## Relation columns
+
+A column can show data from a `belongsTo` (or any) relation using a dotted `field`, e.g. `role.name`. Two things to set up in the `TabulatorTable`:
+
+```php
+public function query(): Builder
+{
+    // Eager-load, or it's an N+1 per row.
+    return User::query()->select('id', 'name', 'role_id')->with('role');
+}
+
+protected function transformer(): ?callable
+{
+    return fn (User $user) => [
+        'id' => $user->id,
+        'name' => $user->name,
+        // Nested, not a flat 'role.name' key: Tabulator's dotted `field`
+        // reads it as a path into a nested object.
+        'role' => ['name' => $user->role?->name],
+    ];
+}
+```
+
+```blade
+['field' => 'role.name', 'title' => 'Role', 'headerFilter' => 'input']
+```
+
+`headerFilter` on a dotted field works out of the box: `applyFilters()` detects the dot and filters via `whereHas($relation, ...)` instead of a plain `where()`. Sorting on a dotted field is not supported — `orderBy` needs a join, which the package doesn't set up automatically; add one manually in `query()` if you need it.
+
+Full example: [`examples/relations/`](examples/relations/).
+
 ## Scopes
 
 Register extra query constraints per-request (e.g. tenant, session state) without hardcoding them in `query()`. Uses native `Illuminate\Database\Eloquent\Scope`, nothing package-specific:
@@ -293,13 +324,16 @@ Full example: [`examples/localization/`](examples/localization/).
 |---|---|
 | `stack` | Blade `@push` stack the component's `<script>` goes into (must match a `@stack` in your layout) |
 | `layout` | Tabulator `layout` option (default `fitColumns`) |
+| `movable_columns` | Tabulator `movableColumns` option (default `true`) |
 | `pagination_size` | Default page size |
 | `pagination_size_selector` | Options in the page-size dropdown |
 | `pagination_counter` | Tabulator `paginationCounter` value |
 | `selectable_width` | Width (px) of the row-selection checkbox column |
 | `rownum_width` | Width (px) of the row-number column |
 | `locale` | Active locale, used to load `resources/lang/{locale}/tabulator.php` for both Tabulator's own UI strings and toolbar tooltips (`en`/`it` ship built in); set to `false` to keep Tabulator's built-in English |
-| `toolbar_button_class` | Default Bootstrap class for toolbar buttons (default `btn-outline-secondary`); override per button with `class` |
+| `toolbar_button_class` | Default Bootstrap class for toolbar buttons (default `btn-secondary`); override per button with `class` |
+| `toolbar_button_size_class` | Bootstrap size class for toolbar buttons (default `btn-sm`) |
+| `search_size_class` | Bootstrap size class for the search box's input group (default `input-group-sm`) |
 | `search_width` | Max width (CSS value) of the search box |
 | `search_debounce_ms` / `search_min_chars` | Global search box behavior |
 | `search_icon` | CSS class of the icon shown in the search box (default `bi bi-search`, Bootstrap Icons) |
