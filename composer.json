@@ -1,0 +1,35 @@
+{
+    "name": "fabamb/laravel-tabulator",
+    "description": "Server-side Tabulator.js integration for Laravel (remote pagination/sort/filter + Blade component)",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/http": "^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "phpunit/phpunit": "^12.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fabamb\\LaravelTabulator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Fabamb\\LaravelTabulator\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Fabamb\\LaravelTabulator\\TabulatorServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
