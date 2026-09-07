@@ -29,14 +29,25 @@ abstract class TabulatorTable
 
     /**
      * Register a scope to apply to the query, e.g. from a controller
-     * depending on request/session state. Native Illuminate\Contracts\
-     * Database\Eloquent\Scope, no custom interface.
+     * depending on request/session state. Native
+     * Illuminate\Database\Eloquent\Scope, no custom interface.
      */
     public function addScope(Scope $scope): static
     {
         $this->scopes[] = $scope;
 
         return $this;
+    }
+
+    /**
+     * Row transformer, applied to each row of the current page after
+     * pagination, before the JSON response. Receives the model, returns
+     * an associative array whose keys match the Tabulator column `field`s.
+     * Null (default): rows pass through as-is.
+     */
+    protected function transformer(): ?callable
+    {
+        return null;
     }
 
     /**
@@ -58,20 +69,25 @@ abstract class TabulatorTable
 
         // Tabulator's "All" page-size option sends size=true (non-numeric),
         // meaning: no pagination, return every matching row on one page.
+        $transformer = $this->transformer();
+
         $sizeInput = $request->input('size', config('tabulator.pagination_size'));
         if (! is_numeric($sizeInput)) {
+            $rows = $query->get();
+
             return response()->json([
                 'last_page' => 1,
-                'data' => $query->get(),
+                'data' => $transformer ? $rows->map($transformer)->all() : $rows,
             ]);
         }
 
         $size = max(1, (int) $sizeInput);
         $paginator = $query->paginate($size, ['*'], 'page', $page);
+        $rows = $paginator->getCollection();
 
         return response()->json([
             'last_page' => $paginator->lastPage(),
-            'data' => $paginator->items(),
+            'data' => $transformer ? $rows->map($transformer)->all() : $rows,
         ]);
     }
 

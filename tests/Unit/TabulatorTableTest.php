@@ -126,6 +126,24 @@ class TabulatorTableTest extends TestCase
 
         $this->assertCount(2, $payload['data']);
     }
+
+    public function test_transformer_is_applied_to_paginated_rows(): void
+    {
+        $table = new UppercaseNameTabulatorTable();
+
+        $payload = $table->toResponse(Request::create('/', 'GET', ['size' => 10]))->getData(true);
+
+        $this->assertSame('OLI BOB', $payload['data'][0]['name']);
+    }
+
+    public function test_transformer_is_applied_to_unpaginated_rows(): void
+    {
+        $table = new UppercaseNameTabulatorTable();
+
+        $payload = $table->toResponse(Request::create('/', 'GET', ['size' => 'true']))->getData(true);
+
+        $this->assertSame('OLI BOB', $payload['data'][0]['name']);
+    }
 }
 
 class AgeOver40Scope implements Scope
@@ -154,5 +172,17 @@ class SearchableWidgetTabulatorTable extends WidgetTabulatorTable
     protected function searchableFields(): array
     {
         return ['name'];
+    }
+}
+
+class UppercaseNameTabulatorTable extends WidgetTabulatorTable
+{
+    protected function transformer(): ?callable
+    {
+        return fn (Widget $widget) => [
+            'id' => $widget->id,
+            'name' => strtoupper($widget->name),
+            'age' => $widget->age,
+        ];
     }
 }

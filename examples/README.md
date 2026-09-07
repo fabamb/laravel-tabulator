@@ -8,6 +8,7 @@ Runnable-shaped snippets for each package feature, referenced from the main [REA
 | [`local-data/`](local-data/) | Client-side table, no `ajax-url` |
 | [`column-filters/`](column-filters/) | Native Tabulator `headerFilter` per column |
 | [`scopes/`](scopes/) | `addScope()`, per-request query constraints |
+| [`transformers/`](transformers/) | `transformer()`, reshape rows before JSON |
 | [`global-search/`](global-search/) | `search` prop + `searchableFields()` |
 | [`navbar-search/`](navbar-search/) | `search-value` prop, search from outside the table's page |
 | [`options-override/`](options-override/) | `options` prop, raw Tabulator config passthrough |

@@ -161,6 +161,28 @@ return $table->toResponse($request);
 
 Full example: [`examples/scopes/`](examples/scopes/).
 
+## Transformers
+
+Reshape each row before it's sent as JSON — e.g. rendering a badge, formatting a date, dropping a column that shouldn't reach the client. Override `transformer()` on your table class to return a callable; it receives the model and returns the array sent to Tabulator (keys map to column `field`s):
+
+```php
+class UserTabulatorTable extends TabulatorTable
+{
+    protected function transformer(): ?callable
+    {
+        return fn (User $user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'status' => view('components.badge', ['status' => $user->status])->render(),
+        ];
+    }
+}
+```
+
+Applied only to the current page's rows (or all rows when `size` is `All`), after pagination — not the whole dataset. `null` (the default) means no transformation, rows pass through as returned by `query()`. No dependency on a specific transformer library (e.g. Fractal) — any callable works, including `[$instance, 'method']` for transformers with constructor dependencies.
+
+Full example: [`examples/transformers/`](examples/transformers/).
+
 ## Global search
 
 Set `search` on the component to render a search box above the table:
