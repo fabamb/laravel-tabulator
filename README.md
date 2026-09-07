@@ -2,6 +2,8 @@
 
 Server-side [Tabulator.js](https://tabulator.info) integration for Laravel: a Blade component that renders the JS table, and a base class that handles remote pagination, sorting and filtering on the server.
 
+See [`examples/`](examples/) for a runnable-shaped snippet of every feature below.
+
 ## Installation
 
 Add the package as a composer path repository (until it's published):
@@ -73,6 +75,8 @@ Route::get('/users/data', function (App\Tabulator\UserTabulatorTable $table, Ill
 />
 ```
 
+Full example: [`examples/remote-basic/`](examples/remote-basic/).
+
 ## Local data (no server round-trip)
 
 Pass `data` instead of `ajax-url` for a client-side table (pagination/sort/filter all happen in the browser):
@@ -83,6 +87,8 @@ Pass `data` instead of `ajax-url` for a client-side table (pagination/sort/filte
     :columns="[['field' => 'name', 'title' => 'Name']]"
 />
 ```
+
+Full example: [`examples/local-data/`](examples/local-data/).
 
 ## Component props
 
@@ -98,6 +104,14 @@ Pass `data` instead of `ajax-url` for a client-side table (pagination/sort/filte
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
 | `options` | array | `[]` | Raw Tabulator options, merged last — overrides anything the component computed |
 
+`options` is an escape hatch for any Tabulator setting not covered by a dedicated prop:
+
+```blade
+:options="['layout' => 'fitDataStretch', 'paginationSize' => 25, 'placeholder' => 'No matching rows']"
+```
+
+Full example: [`examples/options-override/`](examples/options-override/).
+
 ## Column filters
 
 Column-level filters are native Tabulator, nothing package-specific: set `headerFilter` on any column.
@@ -112,6 +126,40 @@ Column-level filters are native Tabulator, nothing package-specific: set `header
 A column without `headerFilter` never shows a filter box — there's no separate "enable filters" flag to configure.
 
 In remote mode, filters are sent to the server as `{field, type, value}` tuples and applied by `TabulatorTable::applyFilters()`. Supported types: `=` (default), `like`, `in`, `<`, `<=`, `>`, `>=`.
+
+Full example: [`examples/column-filters/`](examples/column-filters/).
+
+## Scopes
+
+Register extra query constraints per-request (e.g. tenant, session state) without hardcoding them in `query()`. Uses native `Illuminate\Database\Eloquent\Scope`, nothing package-specific:
+
+```php
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
+
+class ByStatusScope implements Scope
+{
+    public function __construct(private readonly string $status) {}
+
+    public function apply(Builder $builder, Model $model): void
+    {
+        $builder->where('status', $this->status);
+    }
+}
+```
+
+Add scopes from the controller, they accumulate and are all applied before filter/sort/pagination:
+
+```php
+$table = new UserTabulatorTable();
+$table->addScope(new ByStatusScope($request->get('status', 'active')));
+$table->addScope(new ByTenantScope($request->user()->tenant_id));
+
+return $table->toResponse($request);
+```
+
+Full example: [`examples/scopes/`](examples/scopes/).
 
 ## Global search
 
@@ -132,6 +180,8 @@ class UserTabulatorTable extends TabulatorTable
     }
 }
 ```
+
+Full example: [`examples/global-search/`](examples/global-search/).
 
 In local mode, `search` uses Tabulator's own `setFilter` against the in-browser dataset — no server-side wiring needed.
 
@@ -159,6 +209,8 @@ Pass `search-value` to prefill the box and filter on first load, sourced from wh
 Pattern for a navbar search box that isn't on the table's page: submit a plain `GET` form to the table's route with a `search` field (AdminLTE's built-in `navbar-search` menu item works — set `method => 'get'`, `input_name => 'search'`, `url => '/your-route'`). The component drops the query string via `history.replaceState` right after applying the initial filter, so a later reload starts unfiltered instead of being stuck on the old search.
 
 This only targets one table/route per navbar search box — for search across multiple unrelated tables, route selection is up to the caller (not handled by this package).
+
+Full example: [`examples/navbar-search/`](examples/navbar-search/).
 
 ## Configuration reference (`config/tabulator.php`)
 
