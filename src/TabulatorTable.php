@@ -3,6 +3,7 @@
 namespace Fabamb\LaravelTabulator;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,9 +17,27 @@ use Illuminate\Http\Request;
 abstract class TabulatorTable
 {
     /**
+     * Eloquent scopes accumulated via addScope(), applied on top of query()
+     * before filter/sort/pagination.
+     */
+    protected array $scopes = [];
+
+    /**
      * Data source for the table.
      */
     abstract public function query(): Builder;
+
+    /**
+     * Register a scope to apply to the query, e.g. from a controller
+     * depending on request/session state. Native Illuminate\Contracts\
+     * Database\Eloquent\Scope, no custom interface.
+     */
+    public function addScope(Scope $scope): static
+    {
+        $this->scopes[] = $scope;
+
+        return $this;
+    }
 
     /**
      * Apply filter/sort/pagination from the request and return the
@@ -27,6 +46,11 @@ abstract class TabulatorTable
     public function toResponse(Request $request): JsonResponse
     {
         $query = $this->query();
+
+        foreach ($this->scopes as $scope) {
+            $scope->apply($query, $query->getModel());
+        }
+
         $query = $this->applyFilters($query, $request->input('filter', []));
         $query = $this->applySort($query, $request->input('sort', []));
 

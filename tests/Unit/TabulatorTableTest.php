@@ -5,6 +5,7 @@ namespace Fabamb\LaravelTabulator\Tests\Unit;
 use Fabamb\LaravelTabulator\TabulatorTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -114,6 +115,24 @@ class TabulatorTableTest extends TestCase
         $payload = $table->toResponse($request)->getData(true);
 
         $this->assertCount(4, $payload['data']);
+    }
+
+    public function test_added_scope_is_applied_to_query(): void
+    {
+        $table = new WidgetTabulatorTable();
+        $table->addScope(new AgeOver40Scope());
+
+        $payload = $table->toResponse(Request::create('/', 'GET'))->getData(true);
+
+        $this->assertCount(2, $payload['data']);
+    }
+}
+
+class AgeOver40Scope implements Scope
+{
+    public function apply(Builder $builder, Model $model): void
+    {
+        $builder->where('age', '>', 40);
     }
 }
 
