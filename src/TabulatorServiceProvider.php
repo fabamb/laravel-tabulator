@@ -15,6 +15,7 @@ class TabulatorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'tabulator');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'tabulator');
 
         // Usable in any Blade view as <x-tabulator-table ... />
         Blade::component(\Fabamb\LaravelTabulator\View\Components\TabulatorTable::class, 'tabulator-table');
@@ -22,5 +23,9 @@ class TabulatorServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/tabulator.php' => config_path('tabulator.php'),
         ], 'tabulator-config');
+
+        $this->publishes([
+            __DIR__.'/../resources/lang' => $this->app->langPath('vendor/tabulator'),
+        ], 'tabulator-lang');
     }
 }

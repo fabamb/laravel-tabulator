@@ -29,6 +29,12 @@ Publish the config (optional):
 php artisan vendor:publish --tag=tabulator-config
 ```
 
+Publish the language files to add a locale or edit strings (optional — `en` and `it` ship built in):
+
+```sh
+php artisan vendor:publish --tag=tabulator-lang
+```
+
 Tabulator's JS/CSS assets are not bundled by this package — include them yourself (CDN or your own build) before the component's `<script>` runs.
 
 ## Basic usage: remote data source
@@ -103,6 +109,7 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | `search` | bool | `false` | Adds a global search box above the table (see below) |
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
 | `options` | array | `[]` | Raw Tabulator options, merged last — overrides anything the component computed |
+| `toolbar` | array | `[]` | Buttons shown above the table (see [Toolbar buttons](#toolbar-buttons)) |
 
 `options` is an escape hatch for any Tabulator setting not covered by a dedicated prop:
 
@@ -111,6 +118,50 @@ Full example: [`examples/local-data/`](examples/local-data/).
 ```
 
 Full example: [`examples/options-override/`](examples/options-override/).
+
+## Toolbar buttons
+
+`toolbar` renders a button group above the table. Four standard actions are built in — no JS to write. Their tooltips (`title`) default to `resources/lang/{locale}/tabulator.php` (`toolbar.*` keys) unless a button sets its own `title`:
+
+| key | action |
+|---|---|
+| `reload` | `table.setData()` |
+| `csv` | `table.download('csv', 'export.csv')` |
+| `print` | `table.print()` |
+| `reset` | `table.clearFilter(true); table.clearHeaderFilter()` |
+
+```blade
+<x-tabulator-table
+    ajax-url="{{ route('servers.data') }}"
+    :toolbar="[
+        'reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload'],
+        'csv' => ['icon' => 'fas fa-file-csv', 'title' => 'Export CSV'],
+    ]"
+    :columns="[...]"
+/>
+```
+
+For app-specific actions (`create`, `bulk-delete`, ...), define a `window.tabulatorButtons` registry in your own JS — the component looks up any key it doesn't recognize as standard:
+
+```js
+// resources/js/app.js
+window.tabulatorButtons = {
+    'bulk-delete': {
+        action: (table, selected, url) => {
+            if (!selected.length) return alert('Nothing selected');
+            // ... DELETE selected.map(r => r.id) to `url`
+        },
+    },
+};
+```
+
+```blade
+:toolbar="['bulk-delete' => ['icon' => 'fas fa-trash-alt', 'url' => route('servers.bulk.destroy'), 'title' => 'Delete']]"
+```
+
+The click dispatch (button → table instance → `action(table, selectedRows, url)`) is registered once per page via `@pushOnce`, regardless of how many `<x-tabulator-table>` instances are on it.
+
+Full example: [`examples/toolbar/`](examples/toolbar/).
 
 ## Column filters
 
@@ -234,6 +285,8 @@ This only targets one table/route per navbar search box — for search across mu
 
 Full example: [`examples/navbar-search/`](examples/navbar-search/).
 
+Full example: [`examples/localization/`](examples/localization/).
+
 ## Configuration reference (`config/tabulator.php`)
 
 | Key | Description |
@@ -243,7 +296,11 @@ Full example: [`examples/navbar-search/`](examples/navbar-search/).
 | `pagination_size` | Default page size |
 | `pagination_size_selector` | Options in the page-size dropdown |
 | `pagination_counter` | Tabulator `paginationCounter` value |
-| `locale` / `langs` | Tabulator locale strings; set `locale` to `false` to keep English |
+| `selectable_width` | Width (px) of the row-selection checkbox column |
+| `rownum_width` | Width (px) of the row-number column |
+| `locale` | Active locale, used to load `resources/lang/{locale}/tabulator.php` for both Tabulator's own UI strings and toolbar tooltips (`en`/`it` ship built in); set to `false` to keep Tabulator's built-in English |
+| `toolbar_button_class` | Default Bootstrap class for toolbar buttons (default `btn-outline-secondary`); override per button with `class` |
+| `search_width` | Max width (CSS value) of the search box |
 | `search_debounce_ms` / `search_min_chars` | Global search box behavior |
 | `search_icon` | CSS class of the icon shown in the search box (default `bi bi-search`, Bootstrap Icons) |
 

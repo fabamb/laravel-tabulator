@@ -22,6 +22,8 @@ class TabulatorTable extends Component
 
     public ?string $searchValue;
 
+    public array $toolbar;
+
     public function __construct(
         ?string $id = null,
         array $columns = [],
@@ -32,12 +34,14 @@ class TabulatorTable extends Component
         bool $search = false,
         ?string $searchValue = null,
         array $options = [],
+        array $toolbar = [],
     ) {
         $this->id = $id ?? 'tabulator-'.uniqid();
         // A non-empty initial value (e.g. from a navbar search redirect)
         // implies the search box, even if the caller didn't pass `search`.
         $this->search = $search || filled($searchValue);
         $this->searchValue = $searchValue;
+        $this->toolbar = $toolbar;
         $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $options, $searchValue);
     }
 
@@ -68,9 +72,9 @@ class TabulatorTable extends Component
             $config['rowHeader'] = $this->selectableRowHeader();
         }
 
-        if (config('tabulator.locale')) {
-            $config['locale'] = config('tabulator.locale');
-            $config['langs'] = config('tabulator.langs');
+        if ($locale = config('tabulator.locale')) {
+            $config['locale'] = $locale;
+            $config['langs'] = [$locale => trans('tabulator::tabulator.js', [], $locale)];
         }
 
         $config += $ajaxUrl
@@ -102,7 +106,7 @@ class TabulatorTable extends Component
             'resizable' => false,
             'frozen' => true,
             'hozAlign' => 'center',
-            'width' => 50
+            'width' => config('tabulator.rownum_width'),
         ];
     }
 
@@ -116,7 +120,7 @@ class TabulatorTable extends Component
             'frozen' => true,
             'headerHozAlign' => 'center',
             'hozAlign' => 'center',
-            'width' => 30,
+            'width' => config('tabulator.selectable_width'),
             'widthGrow' => 0,
         ];
     }

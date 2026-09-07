@@ -8,42 +8,27 @@ return [
 
     'layout' => 'fitColumns',
 
+    //
     'pagination_size' => 10,
     'pagination_size_selector' => [5, 10, 25, 50, 100, true],
     'pagination_counter' => 'rows',
 
+    // Toolbar buttons (<x-tabulator-table :toolbar="[...]" ... />).
+    // Per-button override: pass 'class' in the button's own array.
+    'toolbar_button_class' => 'btn-secondary',
+
     // Global search box (<x-tabulator-table :search="true" ... />).
+    'search_width' => '300px',
     'search_debounce_ms' => 300,
     'search_min_chars' => 2,
     'search_icon' => 'bi bi-search',
 
-    // Tabulator ships English strings only; any other language needs an
-    // explicit `langs` entry keyed by the `locale` value below.
-    // Set 'locale' => false to leave Tabulator's default (English) as-is.
+    'selectable_width' => 30,
+    'rownum_width' => 50,
+
+    // Tabulator's own UI strings (pagination, header filter placeholder)
+    // and the toolbar button tooltips both come from resources/lang/{locale}/tabulator.php
+    // (publish with `php artisan vendor:publish --tag=tabulator-lang` to add/edit a locale).
+    // Set 'locale' => false to leave Tabulator's built-in default (English) as-is.
     'locale' => config('app.locale'),
-    'langs' => [
-        'it' => [
-            'groups' => ['item' => 'elemento', 'items' => 'elementi'],
-            'pagination' => [
-                'page_size' => 'Righe per pagina',
-                'page_title' => 'Vai alla pagina',
-                'first' => 'Prima',
-                'first_title' => 'Prima pagina',
-                'last' => 'Ultima',
-                'last_title' => 'Ultima pagina',
-                'prev' => 'Precedente',
-                'prev_title' => 'Pagina precedente',
-                'next' => 'Successivo',
-                'next_title' => 'Pagina successiva',
-                'all' => 'Tutti',
-                'counter' => [
-                    'showing' => 'Visualizzazione',
-                    'of' => 'di',
-                    'rows' => 'righe',
-                    'pages' => 'pagine',
-                ],
-            ],
-            'headerFilters' => ['default' => 'filtro colonna...'],
-        ],
-    ],
 ];

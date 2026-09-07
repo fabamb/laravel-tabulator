@@ -12,3 +12,5 @@ Runnable-shaped snippets for each package feature, referenced from the main [REA
 | [`global-search/`](global-search/) | `search` prop + `searchableFields()` |
 | [`navbar-search/`](navbar-search/) | `search-value` prop, search from outside the table's page |
 | [`options-override/`](options-override/) | `options` prop, raw Tabulator config passthrough |
+| [`toolbar/`](toolbar/) | `toolbar` prop, standard buttons + custom `window.tabulatorButtons` registry |
+| [`localization/`](localization/) | `locale` config, built-in `en`/`it` strings, adding a locale via `vendor:publish --tag=tabulator-lang` |

@@ -49,4 +49,40 @@ class TabulatorTableComponentTest extends TestCase
 
         $this->assertSame('fitData', $component->config['layout']);
     }
+
+    public function test_toolbar_defaults_to_empty(): void
+    {
+        $component = new TabulatorTable();
+
+        $this->assertSame([], $component->toolbar);
+    }
+
+    public function test_toolbar_is_exposed_as_is(): void
+    {
+        $toolbar = ['reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload']];
+
+        $component = new TabulatorTable(toolbar: $toolbar);
+
+        $this->assertSame($toolbar, $component->toolbar);
+    }
+
+    public function test_locale_pulls_langs_from_translation_files(): void
+    {
+        config(['tabulator.locale' => 'it']);
+
+        $component = new TabulatorTable();
+
+        $this->assertSame('it', $component->config['locale']);
+        $this->assertSame('elemento', $component->config['langs']['it']['groups']['item']);
+    }
+
+    public function test_locale_false_skips_langs(): void
+    {
+        config(['tabulator.locale' => false]);
+
+        $component = new TabulatorTable();
+
+        $this->assertArrayNotHasKey('locale', $component->config);
+        $this->assertArrayNotHasKey('langs', $component->config);
+    }
 }
