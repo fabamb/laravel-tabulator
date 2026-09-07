@@ -1,9 +1,15 @@
 <?php
 
 return [
+    // Global search box placeholder (<x-tabulator-table :search="true" ... />).
+    'search_placeholder' => 'Cerca',
+
     // Toolbar button tooltips (<x-tabulator-table :toolbar="[...]" ... />),
     // used as fallback when a button doesn't set its own 'title'.
     'toolbar' => [
+        'create' => 'Nuovo',
+        'bulk-edit' => 'Modifica selezionati',
+        'bulk-delete' => 'Elimina selezionati',
         'reload' => 'Ricarica',
         'csv' => 'Esporta CSV',
         'print' => 'Stampa',

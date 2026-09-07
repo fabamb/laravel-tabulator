@@ -196,6 +196,7 @@ class TabulatorTableTest extends TestCase
             array_column($payload['data'], 'name'),
         );
     }
+
 }
 
 class AgeOver40Scope implements Scope

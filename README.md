@@ -161,6 +161,44 @@ window.tabulatorButtons = {
 
 The click dispatch (button → table instance → `action(table, selectedRows, url)`) is registered once per page via `@pushOnce`, regardless of how many `<x-tabulator-table>` instances are on it.
 
+Add a visual gap between buttons with a `['separator' => true]` entry anywhere in the `:toolbar` array (its key doesn't matter, only that key is unique):
+
+```blade
+:toolbar="[
+    'reload' => ['icon' => 'fas fa-sync'],
+    'sep' => ['separator' => true],
+    'csv' => ['icon' => 'fas fa-file-csv'],
+]"
+```
+
+### Standard toolbar across many tables
+
+An admin panel with several tables (users, servers, videos, ...) tends to repeat the same `reload`/`csv`/`print`/`reset` set everywhere, only the `create` (and, for selectable tables, bulk-edit/bulk-delete) URLs changing. `Fabamb\LaravelTabulator\Toolbar::default()` returns that set — no subclassing needed:
+
+```blade
+:toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create'))"
+```
+
+Omit the URL (or pass `null`) to drop the `create` button, e.g. for a read-only table. Icons (and, optionally, per-button `class` for color) come from `config('tabulator.default_toolbar_icons')` (Bootstrap Icons + Bootstrap colors by default) — override there project-wide, no code change needed. Titles still come from `resources/lang/{locale}/tabulator.php`.
+
+When `create`/`bulk-edit`/`bulk-delete` are present, a spacer (`toolbar_separator_class`) is inserted automatically before the standard `reload`/`csv`/`print`/`reset` set.
+
+For tables with row selection (`selectable`), pass bulk-action URLs too:
+
+```blade
+<x-tabulator-table
+    selectable
+    :toolbar="\Fabamb\LaravelTabulator\Toolbar::default(
+        createUrl: route('users.create'),
+        bulkDeleteUrl: route('users.bulk.destroy'),
+        bulkEditUrl: route('users.bulk.edit'),
+    )"
+    ...
+/>
+```
+
+`bulk-edit`/`bulk-delete` are omitted (like `create`) when their URL is `null`. They rely on the same `window.tabulatorButtons` action wiring as any other button with a `url` — see [Toolbar buttons](#toolbar-buttons) above.
+
 Full example: [`examples/toolbar/`](examples/toolbar/).
 
 ## Column filters
@@ -297,6 +335,8 @@ Debounce and minimum character count are configurable in `config/tabulator.php`:
 'search_icon' => 'bi bi-search',
 ```
 
+The search box's placeholder comes from `resources/lang/{locale}/tabulator.php`'s `search_placeholder` key, same as toolbar tooltips.
+
 ### Search from outside the table (e.g. navbar)
 
 Pass `search-value` to prefill the box and filter on first load, sourced from wherever the request came from (typically a query string):
@@ -332,8 +372,10 @@ Full example: [`examples/localization/`](examples/localization/).
 | `rownum_width` | Width (px) of the row-number column |
 | `locale` | Active locale, used to load `resources/lang/{locale}/tabulator.php` for both Tabulator's own UI strings and toolbar tooltips (`en`/`it` ship built in); set to `false` to keep Tabulator's built-in English |
 | `toolbar_button_class` | Default Bootstrap class for toolbar buttons (default `btn-secondary`); override per button with `class` |
-| `toolbar_button_size_class` | Bootstrap size class for toolbar buttons (default `btn-sm`) |
-| `search_size_class` | Bootstrap size class for the search box's input group (default `input-group-sm`) |
+| `toolbar_button_size_class` | Bootstrap size class for toolbar buttons |
+| `toolbar_separator_class` | Class for the gap rendered by a `['separator' => true]` toolbar entry (default `mx-1`, plain spacing — set to `vr mx-1` for a visible vertical rule instead) |
+| `default_toolbar_icons` | Icon, `class` (button color, added on top of `toolbar_button_class`, e.g. `bg-primary`) and `icon_class` (icon color, needed on `bg-body-secondary` buttons for contrast — use theme-adaptive `text-*` utilities so it stays legible when `data-bs-theme` switches to dark) used by `Toolbar::default()` per button, e.g. `['icon' => 'bi bi-plus-lg', 'class' => 'bg-primary']` |
+| `search_size_class` | Bootstrap size class for the search box's input group |
 | `search_width` | Max width (CSS value) of the search box |
 | `search_debounce_ms` / `search_min_chars` | Global search box behavior |
 | `search_icon` | CSS class of the icon shown in the search box (default `bi bi-search`, Bootstrap Icons) |
