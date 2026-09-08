@@ -14,4 +14,6 @@ Runnable-shaped snippets for each package feature, referenced from the main [REA
 | [`navbar-search/`](navbar-search/) | `search-value` prop, search from outside the table's page |
 | [`options-override/`](options-override/) | `options` prop, raw Tabulator config passthrough |
 | [`toolbar/`](toolbar/) | `toolbar` prop, standard buttons + custom `window.tabulatorButtons` registry |
+| [`row-actions/`](row-actions/) | Per-row View/Edit/Delete column, hand-written client-side `formatter`, no transformer |
+| [`row-actions-factory/`](row-actions-factory/) | Same, via the reusable `resources/js/row-actions.js` factory (`Tabulator.rowActionButtons`/`rowActionKebab`) |
 | [`localization/`](localization/) | `locale` config, built-in `en`/`it` strings, adding a locale via `vendor:publish --tag=tabulator-lang` |

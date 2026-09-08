@@ -201,6 +201,88 @@ For tables with row selection (`selectable`), pass bulk-action URLs too:
 
 Full example: [`examples/toolbar/`](examples/toolbar/).
 
+## Row actions
+
+A per-row action column (View/Edit/Delete, or anything else) is a plain Tabulator column with no `field` and a custom `formatter`, declared in `:columns` like any other column:
+
+```blade
+:columns="[
+    ['formatter' => 'rowActionButtons', 'title' => '', 'width' => 100, 'headerSort' => false, 'hozAlign' => 'center'],
+    ['field' => 'name', 'title' => 'Name'],
+]"
+```
+
+`formatter` as a string is a lookup against Tabulator's own formatter registry (built-ins: `plaintext`, `html`, `money`, ...) — not `window[name]` — so it survives the `:columns` array's PHP-array → `@json()` → JS-object trip as-is; no package-specific resolution needed. Register the custom formatter once, before any `new Tabulator(...)` call:
+
+```js
+// resources/js/tabulator-formatters.js, imported by resources/js/app.js.
+Tabulator.extendModule('format', 'formatters', {
+    rowActionButtons: function (cell) {
+        const id = cell.getData().id;
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `<a href="/users/${id}/edit" class="btn btn-sm btn-primary">Edit</a>`;
+        return wrap;
+    },
+});
+```
+
+The formatter receives the Tabulator `cell`; `cell.getData()` is the full row, so it needs no server-side transformer — this is a purely client-side column. If a row action instead needs data the row doesn't already carry (a computed field, a related model not otherwise shown), reshape the row with [`transformer()`](#transformers) and read the extra key from `cell.getData()` the same way.
+
+A dropdown-menu formatter (kebab button + Bootstrap 5 `.dropdown-menu`) needs two extra lines: Tabulator rows are `overflow: hidden` and `transform`ed (virtual scroll), which clips a normally-positioned Popper dropdown and traps it in that row's own stacking context. Fix: `strategy: 'fixed'` on the Popper config, and move the menu to `document.body` only while open (back to the cell on close, so redraws don't leak detached nodes) — see `formatters.js` in the full example below.
+
+Full example: [`examples/row-actions/`](examples/row-actions/).
+
+### Reusable factory
+
+Hand-rolling the formatter above per resource repeats the same DOM/URL/dropdown wiring. `resources/js/row-actions.js` ships two configurable factories, `Tabulator.rowActionButtons(actions)` and `Tabulator.rowActionKebab(actions)`, that build the formatter for you from an actions config — no assumed action set, no baked-in labels/icons/colors, no i18n library.
+
+Publish it once:
+
+```bash
+php artisan vendor:publish --tag=tabulator-js
+```
+
+This copies it to `resources/js/vendor/tabulator/row-actions.js`. Import it from your own `resources/js/app.js`:
+
+```js
+import './vendor/tabulator/row-actions.js';
+```
+
+Then, per table, define the actions config and register the formatter — same `Tabulator.extendModule` call as any custom formatter:
+
+```blade
+@push('js')
+<script>
+    const userActions = {
+        view:   { url: id => `/users/${id}`,      icon: 'bi-eye' },
+        edit:   { url: id => `/users/${id}/edit`, icon: 'bi-pencil' },
+        delete: {
+            url: id => `/users/${id}`, icon: 'bi-trash', method: 'DELETE',
+            class: 'text-danger', label: '{{ __('Delete') }}', confirm: '{{ __('Delete this row?') }}',
+        },
+    };
+
+    Tabulator.extendModule('format', 'formatters', {
+        userActionButtons: Tabulator.rowActionButtons(userActions),
+        userActionKebab: Tabulator.rowActionKebab(userActions),
+    });
+</script>
+@endpush
+```
+
+```blade
+:columns="[
+    ['formatter' => 'userActionButtons', 'title' => '', 'width' => 120, 'headerSort' => false, 'hozAlign' => 'center'],
+    // ...
+]"
+```
+
+Each action key is free-form (not assumed to be `view`/`edit`/`delete`): `url(id)` (required), `icon` (required, a Bootstrap Icons class), plus optional `class`, `label`, `method` (omitted/`GET` renders an `<a href>`; anything else renders a `<button>` that `fetch`es and refreshes the table), and `confirm`.
+
+Labels are plain strings the config provides — `row-actions.js` has no i18n of its own and never touches this package's own `tabulator.php` lang file, which is reserved for Tabulator's built-in UI strings (toolbar, pagination, ...). Since the actions config is written in your own `@push('js')` block, it's rendered by Blade like any other view — use your own `__()` calls and your own lang file there, same as for any other string in your app.
+
+Full example: [`examples/row-actions-factory/`](examples/row-actions-factory/).
+
 ## Column filters
 
 Column-level filters are native Tabulator, nothing package-specific: set `headerFilter` on any column.
