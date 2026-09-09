@@ -61,4 +61,17 @@ class ToolbarTest extends TestCase
     {
         $this->assertArrayNotHasKey('separator', Toolbar::default());
     }
+
+    public function test_no_labels_by_default(): void
+    {
+        $this->assertArrayNotHasKey('label', Toolbar::default());
+    }
+
+    public function test_with_labels_uses_short_label_over_tooltip_text(): void
+    {
+        $toolbar = Toolbar::default(withLabels: true);
+
+        $this->assertSame(__('tabulator::tabulator.toolbar_label.reload'), $toolbar['reload']['label']);
+        $this->assertNotSame(__('tabulator::tabulator.toolbar.reload'), $toolbar['reload']['label']);
+    }
 }

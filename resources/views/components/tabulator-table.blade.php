@@ -9,9 +9,11 @@
         @endif
         <button type="button" class="btn {{ config('tabulator.toolbar_button_size_class') }} {{ config('tabulator.toolbar_button_class') }} {{ $btn['class'] ?? '' }}"
                 data-tabulator-action="{{ $key }}" data-tabulator-table="{{ $id }}" data-tabulator-url="{{ $btn['url'] ?? '' }}"
-                @php($titleKey = 'tabulator::tabulator.toolbar.'.$key)
-                title="{{ $btn['title'] ?? (\Illuminate\Support\Facades\Lang::has($titleKey) ? __($titleKey) : '') }}">
+                title="{{ $btn['title'] }}">
             <i class="{{ $btn['icon'] }} {{ $btn['icon_class'] ?? '' }}" style="display: inline-block; width: 1em; text-align: center;"></i>
+            @if ($btn['label'])
+            {{ $btn['label'] }}
+            @endif
         </button>
         @endforeach
     </div>

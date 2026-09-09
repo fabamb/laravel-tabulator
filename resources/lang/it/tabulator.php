@@ -16,6 +16,19 @@ return [
         'reset' => 'Reimposta filtri',
     ],
 
+    // Short button text for Toolbar::default(withLabels: true) — 'toolbar'
+    // above is the tooltip and tends to be too long to show inline. Falls
+    // back to 'toolbar.*' for any key not listed here.
+    'toolbar_label' => [
+        'create' => 'Nuovo',
+        'bulk-edit' => 'Modifica',
+        'bulk-delete' => 'Elimina',
+        'reload' => 'Ricarica',
+        'csv' => 'CSV',
+        'print' => 'Stampa',
+        'reset' => 'Reimposta',
+    ],
+
     // Tabulator's own `langs` option — passed as-is into the JS config
     // when config('tabulator.locale') matches this file's locale.
     'js' => [

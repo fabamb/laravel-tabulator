@@ -41,7 +41,7 @@ class TabulatorTable extends Component
         // implies the search box, even if the caller didn't pass `search`.
         $this->search = $search || filled($searchValue);
         $this->searchValue = $searchValue;
-        $this->toolbar = $toolbar;
+        $this->toolbar = $this->resolveToolbarButtons($toolbar);
         $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $options, $searchValue);
     }
 
@@ -96,6 +96,33 @@ class TabulatorTable extends Component
 
         // Per-table override/extension of any Tabulator option above.
         return array_merge($config, $options);
+    }
+
+    /**
+     * Resolve each button's visible label and tooltip:
+     *   label + title  -> label shown, tooltip is title
+     *   label, no title -> label shown, tooltip is the label itself
+     *   no label, title -> no label, tooltip is title
+     *   neither         -> no label, no tooltip
+     * A missing 'title' falls back to the translated
+     * `tabulator::tabulator.toolbar.<key>` string, when one exists.
+     */
+    protected function resolveToolbarButtons(array $toolbar): array
+    {
+        return collect($toolbar)->map(function (array $btn, string $key) {
+            if (! empty($btn['separator'])) {
+                return $btn;
+            }
+
+            $titleKey = 'tabulator::tabulator.toolbar.'.$key;
+            $title = $btn['title'] ?? (\Illuminate\Support\Facades\Lang::has($titleKey) ? __($titleKey) : null);
+            $label = $btn['label'] ?? null;
+
+            $btn['label'] = $label;
+            $btn['title'] = $label ? ($title ?: $label) : $title;
+
+            return $btn;
+        })->all();
     }
 
     protected function rownumColumn(): array

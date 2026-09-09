@@ -16,6 +16,19 @@ return [
         'reset' => 'Reset filters',
     ],
 
+    // Short button text for Toolbar::default(withLabels: true) — 'toolbar'
+    // above is the tooltip and tends to be too long to show inline. Falls
+    // back to 'toolbar.*' for any key not listed here.
+    'toolbar_label' => [
+        'create' => 'New',
+        'bulk-edit' => 'Edit',
+        'bulk-delete' => 'Delete',
+        'reload' => 'Reload',
+        'csv' => 'CSV',
+        'print' => 'Print',
+        'reset' => 'Reset',
+    ],
+
     // Tabulator's own `langs` option — passed as-is into the JS config
     // when config('tabulator.locale') matches this file's locale. Tabulator
     // ships English by default, this mirrors it so setting locale => 'en'

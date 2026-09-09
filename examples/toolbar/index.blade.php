@@ -1,9 +1,10 @@
-{{-- Fully custom toolbar --}}
+{{-- Fully custom toolbar. Icon-only by default; add 'label' to also show
+     text — see README.md "Toolbar buttons" for how label/title combine. --}}
 <x-tabulator-table
     ajax-url="{{ route('users.data') }}"
     selectable
     :toolbar="[
-        'reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload'],
+        'reload' => ['icon' => 'fas fa-sync', 'label' => 'Reload'],
         'csv' => ['icon' => 'fas fa-file-csv', 'title' => 'Export CSV'],
         'bulk-delete' => ['icon' => 'fas fa-trash-alt', 'title' => 'Delete', 'url' => route('users.bulk.destroy')],
     ]"
@@ -18,6 +19,17 @@
 <x-tabulator-table
     ajax-url="{{ route('users.data') }}"
     :toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create'))"
+    :columns="[
+        ['field' => 'name', 'title' => 'Name'],
+        ['field' => 'email', 'title' => 'Email'],
+    ]"
+/>
+
+{{-- Same standard set, with each button's translated label shown next to
+     its icon instead of icon-only. --}}
+<x-tabulator-table
+    ajax-url="{{ route('users.data') }}"
+    :toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create'), withLabels: true)"
     :columns="[
         ['field' => 'name', 'title' => 'Name'],
         ['field' => 'email', 'title' => 'Email'],

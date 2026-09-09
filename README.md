@@ -141,6 +141,21 @@ Full example: [`examples/options-override/`](examples/options-override/).
 />
 ```
 
+Buttons are icon-only by default. Add `label` to a button to also show text next to the icon; it combines with `title` (the tooltip) by one rule:
+
+| `label` | `title` | Visible label | Tooltip |
+|---|---|---|---|
+| set | set | `label` | `title` |
+| set | not set | `label` | `label` |
+| not set | set | *(none)* | `title` |
+| not set | not set | *(none)* | *(none)* |
+
+```blade
+:toolbar="[
+    'reload' => ['icon' => 'fas fa-sync', 'label' => 'Reload'],
+]"
+```
+
 For app-specific actions (`create`, `bulk-delete`, ...), define a `window.tabulatorButtons` registry in your own JS — the component looks up any key it doesn't recognize as standard:
 
 ```js
@@ -180,6 +195,12 @@ An admin panel with several tables (users, servers, videos, ...) tends to repeat
 ```
 
 Omit the URL (or pass `null`) to drop the `create` button, e.g. for a read-only table. Icons (and, optionally, per-button `class` for color) come from `config('tabulator.default_toolbar_icons')` (Bootstrap Icons + Bootstrap colors by default) — override there project-wide, no code change needed. Titles still come from `resources/lang/{locale}/tabulator.php`.
+
+Pass `withLabels: true` to also show each button's translated label next to its icon — a short `toolbar_label.*` string (falling back to the `toolbar.*` tooltip text for any key without one):
+
+```blade
+:toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create'), withLabels: true)"
+```
 
 When `create`/`bulk-edit`/`bulk-delete` are present, a spacer (`toolbar_separator_class`) is inserted automatically before the standard `reload`/`csv`/`print`/`reset` set.
 

@@ -19,6 +19,7 @@ class Toolbar
         ?string $createUrl = null,
         ?string $bulkDeleteUrl = null,
         ?string $bulkEditUrl = null,
+        bool $withLabels = false,
     ): array {
         $icons = config('tabulator.default_toolbar_icons');
         $btn = fn (string $key, ?string $url = null) => array_filter([
@@ -26,6 +27,13 @@ class Toolbar
             'class' => $icons[$key]['class'] ?? null,
             'icon_class' => $icons[$key]['icon_class'] ?? null,
             'url' => $url,
+            // 'toolbar_label' is the short inline text; 'toolbar' (the
+            // tooltip strings) is the fallback for any key without one.
+            'label' => $withLabels
+                ? (\Illuminate\Support\Facades\Lang::has('tabulator::tabulator.toolbar_label.'.$key)
+                    ? __('tabulator::tabulator.toolbar_label.'.$key)
+                    : __('tabulator::tabulator.toolbar.'.$key))
+                : null,
         ]);
 
         $custom = array_filter([

@@ -57,13 +57,54 @@ class TabulatorTableComponentTest extends TestCase
         $this->assertSame([], $component->toolbar);
     }
 
-    public function test_toolbar_is_exposed_as_is(): void
+    public function test_toolbar_keeps_icon_and_explicit_title_no_label(): void
     {
         $toolbar = ['reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload']];
 
         $component = new TabulatorTable(toolbar: $toolbar);
 
-        $this->assertSame($toolbar, $component->toolbar);
+        $this->assertSame('fas fa-sync', $component->toolbar['reload']['icon']);
+        $this->assertSame('Reload', $component->toolbar['reload']['title']);
+        $this->assertNull($component->toolbar['reload']['label']);
+    }
+
+    public function test_toolbar_label_and_title_both_set_keeps_both(): void
+    {
+        $toolbar = ['reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload', 'label' => 'Refresh']];
+
+        $component = new TabulatorTable(toolbar: $toolbar);
+
+        $this->assertSame('Refresh', $component->toolbar['reload']['label']);
+        $this->assertSame('Reload', $component->toolbar['reload']['title']);
+    }
+
+    public function test_toolbar_label_without_title_uses_label_as_tooltip_too(): void
+    {
+        $toolbar = ['sync' => ['icon' => 'fas fa-sync', 'label' => 'Refresh']];
+
+        $component = new TabulatorTable(toolbar: $toolbar);
+
+        $this->assertSame('Refresh', $component->toolbar['sync']['label']);
+        $this->assertSame('Refresh', $component->toolbar['sync']['title']);
+    }
+
+    public function test_toolbar_no_label_no_title_falls_back_to_translated_title(): void
+    {
+        $toolbar = ['reload' => ['icon' => 'fas fa-sync']];
+
+        $component = new TabulatorTable(toolbar: $toolbar);
+
+        $this->assertNull($component->toolbar['reload']['label']);
+        $this->assertSame(__('tabulator::tabulator.toolbar.reload'), $component->toolbar['reload']['title']);
+    }
+
+    public function test_toolbar_separator_untouched(): void
+    {
+        $toolbar = ['sep' => ['separator' => true]];
+
+        $component = new TabulatorTable(toolbar: $toolbar);
+
+        $this->assertSame(['separator' => true], $component->toolbar['sep']);
     }
 
     public function test_locale_pulls_langs_from_translation_files(): void
