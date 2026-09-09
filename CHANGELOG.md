@@ -1,3 +1,9 @@
+## [0.2.0] - 2026-09-09
+
+### Features
+
+- Support row selection modes and responsive column collapsing
+
 ## [0.1.1] - 2026-09-09
 
 ### Features
