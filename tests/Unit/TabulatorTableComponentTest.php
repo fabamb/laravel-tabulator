@@ -6,8 +6,8 @@ use Fabamb\LaravelTabulator\View\Components\TabulatorTable;
 use Orchestra\Testbench\TestCase;
 
 /**
- * Self-check: the config-assembly logic (rownum column, selectable
- * rowHeader, ajax vs. local mode, per-table overrides) must produce the
+ * Self-check: the config-assembly logic (rownum/selectable/responsive
+ * columns, ajax vs. local mode, per-table overrides) must produce the
  * expected Tabulator config array.
  */
 class TabulatorTableComponentTest extends TestCase
@@ -17,13 +17,47 @@ class TabulatorTableComponentTest extends TestCase
         return [\Fabamb\LaravelTabulator\TabulatorServiceProvider::class];
     }
 
-    public function test_selectable_adds_row_header_without_touching_rownum(): void
+    public function test_selectable_true_defaults_to_both(): void
     {
+        // Bare `selectable` (Blade resolves the valueless attribute to
+        // true) behaves like 'both': click-to-select plus the tickbox column.
         $component = new TabulatorTable(selectable: true, rownum: true);
 
-        $this->assertTrue($component->config['selectable']);
-        $this->assertSame('rowSelection', $component->config['rowHeader']['formatter']);
-        $this->assertSame('rownum', $component->config['columns'][0]['formatter']);
+        $this->assertTrue($component->config['selectableRows']);
+        $this->assertArrayNotHasKey('rowHeader', $component->config);
+        $this->assertSame('rowSelection', $component->config['columns'][0]['formatter']);
+        $this->assertSame('rownum', $component->config['columns'][1]['formatter']);
+    }
+
+    public function test_selectable_click_string_also_enables_selection(): void
+    {
+        // match() is strict — 'click' isn't bool true, must be listed
+        // explicitly or it falls through to the disabled default.
+        $component = new TabulatorTable(selectable: 'click');
+
+        $this->assertTrue($component->config['selectableRows']);
+        $this->assertArrayNotHasKey('rowHeader', $component->config);
+    }
+
+    public function test_selectable_checkbox_adds_tickbox_column_before_rownum(): void
+    {
+        $component = new TabulatorTable(selectable: 'checkbox', rownum: true);
+
+        // 'highlight', not true — skips the whole-row click listener so
+        // only the tickbox toggles selection, not a click anywhere in the row.
+        $this->assertSame('highlight', $component->config['selectableRows']);
+        $this->assertArrayNotHasKey('rowHeader', $component->config);
+        $this->assertSame('rowSelection', $component->config['columns'][0]['formatter']);
+        $this->assertSame('rownum', $component->config['columns'][1]['formatter']);
+    }
+
+    public function test_selectable_both_enables_click_and_checkbox_column(): void
+    {
+        $component = new TabulatorTable(selectable: 'both', rownum: true);
+
+        $this->assertTrue($component->config['selectableRows']);
+        $this->assertSame('rowSelection', $component->config['columns'][0]['formatter']);
+        $this->assertSame('rownum', $component->config['columns'][1]['formatter']);
     }
 
     public function test_ajax_url_switches_to_remote_mode(): void
@@ -41,6 +75,47 @@ class TabulatorTableComponentTest extends TestCase
 
         $this->assertSame('local', $component->config['pagination']);
         $this->assertSame([['id' => 1]], $component->config['data']);
+    }
+
+    public function test_responsive_layout_defaults_to_config(): void
+    {
+        $component = new TabulatorTable();
+
+        $this->assertSame(config('tabulator.responsive_layout'), $component->config['responsiveLayout']);
+    }
+
+    public function test_responsive_collapse_adds_toggle_column(): void
+    {
+        $component = new TabulatorTable(options: ['responsiveLayout' => 'collapse']);
+
+        $this->assertArrayNotHasKey('rowHeader', $component->config);
+        $this->assertSame('responsiveCollapse', $component->config['columns'][0]['formatter']);
+    }
+
+    public function test_responsive_shorthand_sets_fixed_layout_and_collapse(): void
+    {
+        $component = new TabulatorTable(responsive: true);
+
+        $this->assertSame('fitDataFill', $component->config['layout']);
+        $this->assertSame('collapse', $component->config['responsiveLayout']);
+    }
+
+    public function test_responsive_shorthand_yields_to_explicit_options(): void
+    {
+        $component = new TabulatorTable(responsive: true, options: ['layout' => 'fitData', 'responsiveLayout' => 'hide']);
+
+        $this->assertSame('fitData', $component->config['layout']);
+        $this->assertSame('hide', $component->config['responsiveLayout']);
+    }
+
+    public function test_selectable_and_responsive_collapse_coexist_as_columns(): void
+    {
+        // Both would compete for Tabulator's single rowHeader slot if
+        // implemented that way — as plain columns they don't.
+        $component = new TabulatorTable(selectable: 'checkbox', options: ['responsiveLayout' => 'collapse']);
+
+        $this->assertSame('rowSelection', $component->config['columns'][0]['formatter']);
+        $this->assertSame('responsiveCollapse', $component->config['columns'][1]['formatter']);
     }
 
     public function test_options_override_generated_config(): void

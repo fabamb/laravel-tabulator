@@ -77,7 +77,7 @@ Route::get('/users/data', function (App\Tabulator\UserTabulatorTable $table, Ill
         ['field' => 'created_at', 'title' => 'Created at'],
     ]"
     rownum
-    selectable
+    selectable="checkbox"
 />
 ```
 
@@ -104,8 +104,9 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | `columns` | array | `[]` | Tabulator column definitions, passed through as-is |
 | `ajax-url` | string\|null | `null` | Enables remote mode (pagination/sort/filter sent to the server) |
 | `data` | array\|null | `null` | Local dataset, used when `ajax-url` is not set |
-| `selectable` | bool | `false` | Adds a row-selection checkbox column |
+| `selectable` | bool\|string | `false` | Row selection. Bare `selectable` (`true`) is shorthand for `'both'`. `'checkbox'` — tickbox column only, clicking elsewhere in the row does nothing. `'click'` — clicking anywhere in the row selects it, no column. `'both'` — both at once |
 | `rownum` | bool | `false` | Adds a row-number column (frozen, not sortable) |
+| `responsive` | bool | `false` | Shorthand for `:options="['layout' => config('tabulator.responsive_fixed_layout'), 'responsiveLayout' => 'collapse']"` (see [Configuration reference](#configuration-reference-configtabulatorphp)); an explicit `layout`/`responsiveLayout` in `options` still wins |
 | `search` | bool | `false` | Adds a global search box above the table (see below) |
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
 | `options` | array | `[]` | Raw Tabulator options, merged last — overrides anything the component computed |
@@ -208,7 +209,7 @@ For tables with row selection (`selectable`), pass bulk-action URLs too:
 
 ```blade
 <x-tabulator-table
-    selectable
+    selectable="checkbox"
     :toolbar="\Fabamb\LaravelTabulator\Toolbar::default(
         createUrl: route('users.create'),
         bulkDeleteUrl: route('users.bulk.destroy'),
@@ -468,6 +469,8 @@ Full example: [`examples/localization/`](examples/localization/).
 | `stack` | Blade `@push` stack the component's `<script>` goes into (must match a `@stack` in your layout) |
 | `layout` | Tabulator `layout` option (default `fitColumns`) |
 | `movable_columns` | Tabulator `movableColumns` option (default `true`) |
+| `responsive_layout` | Tabulator `responsiveLayout` option (default `false`); set to `'collapse'` to hide columns that no longer fit behind a per-row expand arrow (the component adds the `responsiveCollapse` toggle column for it automatically — coexists fine with `selectable`'s own column), or `'hide'` to just drop them. **Requires `layout` to be a fixed-width mode** (`fitData`/`fitDataFill`/`fitDataStretch`) — the default `fitColumns` shrinks every column to always fit instead of ever overflowing, so `collapse`/`hide` never trigger. The `responsive` prop below sets both together automatically |
+| `responsive_fixed_layout` | `layout` used when the `responsive` prop is set (default `fitDataFill`) |
 | `pagination_size` | Default page size |
 | `pagination_size_selector` | Options in the page-size dropdown |
 | `pagination_counter` | Tabulator `paginationCounter` value |

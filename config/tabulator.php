@@ -9,6 +9,18 @@ return [
     'layout' => 'fitColumns',
     'movable_columns' => true,
 
+    // Tabulator's responsiveLayout option. 'collapse' hides columns that no
+    // longer fit and lists them under the row behind an expand arrow; 'hide'
+    // just drops them. false disables it (default). Per-table override via
+    // <x-tabulator-table :options="['responsiveLayout' => ...]" ... />.
+    'responsive_layout' => false,
+
+    // Layout used by <x-tabulator-table responsive ... /> (see README).
+    // Must be a fixed-width mode — the default 'layout' above ('fitColumns')
+    // shrinks every column to always fit instead of ever overflowing, so
+    // responsive_layout's 'collapse'/'hide' would never trigger.
+    'responsive_fixed_layout' => 'fitDataFill',
+
     //
     'pagination_size' => 10,
     'pagination_size_selector' => [5, 10, 25, 50, 100, true],

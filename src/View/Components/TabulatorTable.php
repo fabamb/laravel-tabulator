@@ -29,8 +29,9 @@ class TabulatorTable extends Component
         array $columns = [],
         ?string $ajaxUrl = null,
         ?array $data = null,
-        bool $selectable = false,
+        bool|string $selectable = false,
         bool $rownum = false,
+        bool $responsive = false,
         bool $search = false,
         ?string $searchValue = null,
         array $options = [],
@@ -42,15 +43,16 @@ class TabulatorTable extends Component
         $this->search = $search || filled($searchValue);
         $this->searchValue = $searchValue;
         $this->toolbar = $this->resolveToolbarButtons($toolbar);
-        $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $options, $searchValue);
+        $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $responsive, $options, $searchValue);
     }
 
     protected function buildConfig(
         array $columns,
         ?string $ajaxUrl,
         ?array $data,
-        bool $selectable,
+        bool|string $selectable,
         bool $rownum,
+        bool $responsive,
         array $options,
         ?string $searchValue = null,
     ): array {
@@ -58,8 +60,17 @@ class TabulatorTable extends Component
             array_unshift($columns, $this->rownumColumn());
         }
 
+        // `responsive` is shorthand for the two options responsiveLayout
+        // 'collapse' needs together (see README): a fixed-width layout
+        // (fitColumns would just shrink columns instead of ever
+        // overflowing, so collapse never triggers) plus the option itself.
+        // Per-table `:options` still wins over both when set explicitly.
+        $layout = $options['layout'] ?? ($responsive ? config('tabulator.responsive_fixed_layout') : config('tabulator.layout'));
+        $responsiveLayout = $options['responsiveLayout'] ?? ($responsive ? 'collapse' : config('tabulator.responsive_layout'));
+
         $config = [
-            'layout' => config('tabulator.layout'),
+            'layout' => $layout,
+            'responsiveLayout' => $responsiveLayout,
             'columns' => $columns,
             'movableColumns' => config('tabulator.movable_columns'),
             'paginationSize' => config('tabulator.pagination_size'),
@@ -67,9 +78,34 @@ class TabulatorTable extends Component
             'paginationCounter' => config('tabulator.pagination_counter'),
         ];
 
-        if ($selectable) {
-            $config['selectable'] = true;
-            $config['rowHeader'] = $this->selectableRowHeader();
+        // Both the row-selection checkbox and the responsiveCollapse
+        // toggle are usually put in the rowHeader (Tabulator's docs do
+        // this), but that's a single slot — they'd fight over it. Both
+        // formatters work fine as plain columns too, so that's what these
+        // are: independent, freely combinable, no rowHeader involved.
+        if ($responsiveLayout === 'collapse') {
+            array_unshift($config['columns'], $this->responsiveCollapseColumn());
+        }
+
+        // 'selectable' was the option name pre-6.x; Tabulator 6 renamed it
+        // to 'selectableRows' (checked against 6.5.0 docs). Its `true`
+        // value binds a click listener on the whole row that toggles
+        // selection, separate from — and on top of — the tickbox column's
+        // own toggle; 'highlight' skips that listener (hover style only),
+        // leaving just the tickbox. Bare `selectable` (Blade resolves the
+        // valueless attribute to true) means 'both'.
+        $selectableRows = match ($selectable) {
+            'checkbox' => 'highlight',
+            'both', 'click', true => true,
+            default => false,
+        };
+
+        if ($selectableRows) {
+            $config['selectableRows'] = $selectableRows;
+        }
+
+        if (in_array($selectable, ['checkbox', 'both', true], strict: true)) {
+            array_unshift($config['columns'], $this->selectableColumn());
         }
 
         if ($locale = config('tabulator.locale')) {
@@ -137,7 +173,7 @@ class TabulatorTable extends Component
         ];
     }
 
-    protected function selectableRowHeader(): array
+    protected function selectableColumn(): array
     {
         return [
             'formatter' => 'rowSelection',
@@ -147,8 +183,22 @@ class TabulatorTable extends Component
             'frozen' => true,
             'headerHozAlign' => 'center',
             'hozAlign' => 'center',
+            'vertAlign' => 'middle',
             'width' => config('tabulator.selectable_width'),
             'widthGrow' => 0,
+        ];
+    }
+
+    protected function responsiveCollapseColumn(): array
+    {
+        return [
+            'formatter' => 'responsiveCollapse',
+            'headerSort' => false,
+            'resizable' => false,
+            'hozAlign' => 'center',
+            'vertAlign' => 'middle',
+            // No fixed width: a 30px minWidth clipped the toggle icon,
+            // let it size to content instead.
         ];
     }
 
