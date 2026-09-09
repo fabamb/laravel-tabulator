@@ -1,3 +1,9 @@
+## [0.1.1] - 2026-09-09
+
+### Features
+
+- *(toolbar)* Add optional visible label for toolbar buttons
+
 ## [0.1.0] - 2026-09-08
 
 ### Features
