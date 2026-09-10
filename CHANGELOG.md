@@ -1,3 +1,9 @@
+## [0.3.0] - 2026-09-10
+
+### Features
+
+- *(bulk-actions)* Add reusable bulk-action factory and fix JS publish path
+
 ## [0.2.0] - 2026-09-09
 
 ### Features
