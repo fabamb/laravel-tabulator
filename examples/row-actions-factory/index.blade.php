@@ -2,8 +2,8 @@
      instead of hand-writing the formatter (see examples/row-actions/ for
      that version). Publish first:
        php artisan vendor:publish --tag=tabulator-js
-     then import resources/js/vendor/tabulator/row-actions.js from your own
-     resources/js/app.js. --}}
+     then load public/vendor/tabulator/row-actions.js (plain <script>, or
+     import it from your own resources/js/app.js if you bundle). --}}
 @push('js')
 <script>
     const userActions = {

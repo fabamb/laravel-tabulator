@@ -29,7 +29,7 @@ class TabulatorServiceProvider extends ServiceProvider
         ], 'tabulator-lang');
 
         $this->publishes([
-            __DIR__.'/../resources/js' => resource_path('js/vendor/tabulator'),
+            __DIR__.'/../resources/js' => public_path('vendor/tabulator'),
         ], 'tabulator-js');
     }
 }

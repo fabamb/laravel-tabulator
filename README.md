@@ -187,6 +187,21 @@ Add a visual gap between buttons with a `['separator' => true]` entry anywhere i
 ]"
 ```
 
+### Reusable bulk-action factory
+
+`bulk-actions.js` ships `Tabulator.bulkAction(options)`, covering the two common `window.tabulatorButtons` patterns above — confirm-then-fetch and prompt-then-fetch against the current selection — so you don't hand-roll the same fetch/confirm/prompt wiring per button. Publish it the same way as `row-actions.js` (see "Reusable factory" above), then:
+
+```js
+window.tabulatorButtons = {
+    'bulk-delete': Tabulator.bulkAction({ method: 'DELETE', confirm: 'Delete selected rows?' }),
+    'bulk-tags': Tabulator.bulkAction({
+        method: 'PUT', prompt: 'Tags, comma separated:', bodyKey: 'tags',
+    }),
+};
+```
+
+`method` is required. `confirm`/`prompt` are optional; a cancelled `prompt()` aborts the action. `bodyKey` (default `'value'`) names the field the prompted value is sent under, alongside `ids` (the selected rows' `id`s). `empty` overrides the alert shown when nothing is selected. Actions that need more than confirm/prompt — a modal site-picker, for instance — are still hand-written against the same `window.tabulatorButtons` registry.
+
 ### Standard toolbar across many tables
 
 An admin panel with several tables (users, servers, videos, ...) tends to repeat the same `reload`/`csv`/`print`/`reset` set everywhere, only the `create` (and, for selectable tables, bulk-edit/bulk-delete) URLs changing. `Fabamb\LaravelTabulator\Toolbar::default()` returns that set — no subclassing needed:
@@ -264,10 +279,10 @@ Publish it once:
 php artisan vendor:publish --tag=tabulator-js
 ```
 
-This copies it to `resources/js/vendor/tabulator/row-actions.js`. Import it from your own `resources/js/app.js`:
+This copies it to `public/vendor/tabulator/row-actions.js` — a plain global (`Tabulator.rowActionButtons`/`Tabulator.rowActionKebab`), no bundler required. Load it with a `<script>` tag (e.g. via `config('adminlte.plugins')`, or any other global-asset mechanism), or import it from your own `resources/js/app.js` if you do run a bundler:
 
 ```js
-import './vendor/tabulator/row-actions.js';
+import '/vendor/tabulator/row-actions.js';
 ```
 
 Then, per table, define the actions config and register the formatter — same `Tabulator.extendModule` call as any custom formatter:

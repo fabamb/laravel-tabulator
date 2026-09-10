@@ -80,7 +80,7 @@ Tabulator.rowActionKebab = function (actions) {
 
         const toggle = document.createElement('button');
         toggle.type = 'button';
-        toggle.className = 'btn btn-sm bg-light';
+        toggle.className = 'btn btn-sm bg-body-secondary';
         toggle.setAttribute('data-bs-toggle', 'dropdown');
         toggle.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
 
