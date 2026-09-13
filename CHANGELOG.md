@@ -1,3 +1,10 @@
+## [0.4.1] - 2026-09-13
+
+### Features
+
+- Add default-toolbar shorthand, server-side columns, and Laravel 12 support
+- Add server-side toolbar definitions via TabulatorTable::toolbar()
+
 ## [0.4.0] - 2026-09-13
 
 ### Features
