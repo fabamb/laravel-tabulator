@@ -83,6 +83,40 @@ Route::get('/users/data', function (App\Tabulator\UserTabulatorTable $table, Ill
 
 Full example: [`examples/remote-basic/`](examples/remote-basic/).
 
+## Server-side column definitions
+
+Columns are normally passed inline via `:columns` (they're just Tabulator's own JS config). When the same table's columns are reused across multiple views (index, export, ...) and duplicating the array risks drift, override `columns()` on the table class instead — same idea as `transformer()`:
+
+```php
+class UserTabulatorTable extends TabulatorTable
+{
+    public function query(): Builder
+    {
+        return User::query()->select('id', 'name', 'email', 'created_at');
+    }
+
+    public function columns(): array
+    {
+        return [
+            ['field' => 'id', 'title' => 'ID', 'width' => 80],
+            ['field' => 'name', 'title' => 'Name'],
+            ['field' => 'email', 'title' => 'Email'],
+            ['field' => 'created_at', 'title' => 'Created at'],
+        ];
+    }
+}
+```
+
+Pass the table instance as `:table` and omit `:columns` to use it:
+
+```blade
+<x-tabulator-table ajax-url="{{ route('users.data') }}" :table="$table" rownum selectable="checkbox" />
+```
+
+An explicit `:columns` still overrides `:table`'s, per view.
+
+Full example: [`examples/server-columns/`](examples/server-columns/).
+
 ## Local data (no server round-trip)
 
 Pass `data` instead of `ajax-url` for a client-side table (pagination/sort/filter all happen in the browser):
@@ -101,7 +135,8 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `id` | string | auto-generated | DOM id of the table container |
-| `columns` | array | `[]` | Tabulator column definitions, passed through as-is |
+| `columns` | array | `[]` | Tabulator column definitions, passed through as-is. Overrides `table`'s `columns()` when both are set |
+| `table` | `TabulatorTable`\|null | `null` | Table instance to pull columns from via its `columns()` (see [Server-side column definitions](#server-side-column-definitions)), when `columns` isn't passed |
 | `ajax-url` | string\|null | `null` | Enables remote mode (pagination/sort/filter sent to the server) |
 | `data` | array\|null | `null` | Local dataset, used when `ajax-url` is not set |
 | `selectable` | bool\|string | `false` | Row selection. Bare `selectable` (`true`) is shorthand for `'both'`. `'checkbox'` — tickbox column only, clicking elsewhere in the row does nothing. `'click'` — clicking anywhere in the row selects it, no column. `'both'` — both at once |
@@ -110,7 +145,7 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | `search` | bool | `false` | Adds a global search box above the table (see below) |
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
 | `options` | array | `[]` | Raw Tabulator options, merged last — overrides anything the component computed |
-| `toolbar` | array | `[]` | Buttons shown above the table (see [Toolbar buttons](#toolbar-buttons)) |
+| `toolbar` | array\|bool | `[]` | Buttons shown above the table (see [Toolbar buttons](#toolbar-buttons)). Bare `toolbar` (`true`) uses the standard `Toolbar::default()` set |
 
 `options` is an escape hatch for any Tabulator setting not covered by a dedicated prop:
 
@@ -210,6 +245,12 @@ An admin panel with several tables (users, servers, videos, ...) tends to repeat
 :toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create'))"
 ```
 
+When no `create`/bulk URL is needed at all, the bare `toolbar` attribute (Blade resolves the valueless attribute to `true`) is shorthand for the same standard set with no arguments:
+
+```blade
+<x-tabulator-table ajax-url="{{ route('users.data') }}" toolbar :columns="[...]" />
+```
+
 Omit the URL (or pass `null`) to drop the `create` button, e.g. for a read-only table. Icons (and, optionally, per-button `class` for color) come from `config('tabulator.default_toolbar_icons')` (Bootstrap Icons + Bootstrap colors by default) — override there project-wide, no code change needed. Titles still come from `resources/lang/{locale}/tabulator.php`.
 
 Pass `withLabels: true` to also show each button's translated label next to its icon — a short `toolbar_label.*` string (falling back to the `toolbar.*` tooltip text for any key without one):
@@ -235,6 +276,14 @@ For tables with row selection (`selectable`), pass bulk-action URLs too:
 ```
 
 `bulk-edit`/`bulk-delete` are omitted (like `create`) when their URL is `null`. They rely on the same `window.tabulatorButtons` action wiring as any other button with a `url` — see [Toolbar buttons](#toolbar-buttons) above.
+
+`Toolbar::default()` returns a plain array, so adding an app-specific button alongside the standard set needs no helper — just `+` a custom entry onto it (a key colliding with a standard one, e.g. `reload`, loses to the standard button, since `+` keeps the left array's value on conflict):
+
+```blade
+:toolbar="\Fabamb\LaravelTabulator\Toolbar::default(route('users.create')) + [
+    'export-pdf' => ['icon' => 'fas fa-file-pdf', 'title' => 'Export PDF', 'url' => route('users.export-pdf')],
+]"
+```
 
 Full example: [`examples/toolbar/`](examples/toolbar/).
 

@@ -71,7 +71,10 @@ class ToolbarTest extends TestCase
     {
         $toolbar = Toolbar::default(withLabels: true);
 
-        $this->assertSame(__('tabulator::tabulator.toolbar_label.reload'), $toolbar['reload']['label']);
-        $this->assertNotSame(__('tabulator::tabulator.toolbar.reload'), $toolbar['reload']['label']);
+        // 'csv' is the key where translated label and tooltip differ
+        // ('CSV' vs 'Export CSV'); 'reload' has the same text for both,
+        // which wouldn't prove the label ever wins over the tooltip.
+        $this->assertSame(__('tabulator::tabulator.toolbar_label.csv'), $toolbar['csv']['label']);
+        $this->assertNotSame(__('tabulator::tabulator.toolbar.csv'), $toolbar['csv']['label']);
     }
 }
