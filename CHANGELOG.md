@@ -1,3 +1,9 @@
+## [0.4.0] - 2026-09-13
+
+### Features
+
+- Add default-toolbar shorthand, server-side columns, and Laravel 12 support
+
 ## [0.3.0] - 2026-09-10
 
 ### Features
