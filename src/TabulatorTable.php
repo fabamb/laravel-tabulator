@@ -63,6 +63,20 @@ abstract class TabulatorTable
     }
 
     /**
+     * Toolbar buttons for the client component. Optional: only worth
+     * overriding when the same table's toolbar is reused across multiple
+     * views and should have a single source of truth. Pass
+     * `<x-tabulator-table :table="$table" toolbar>` (bare `toolbar`) to use
+     * this; an explicit `:toolbar` array still wins. Defaults to
+     * `Toolbar::default()` so bare `toolbar` behaves the same whether or
+     * not `:table` is passed, unless overridden.
+     */
+    public function toolbar(): array
+    {
+        return Toolbar::default();
+    }
+
+    /**
      * Apply filter/sort/pagination from the request and return the
      * Tabulator-compatible JSON response.
      */

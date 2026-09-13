@@ -45,7 +45,7 @@ class TabulatorTable extends Component
         // implies the search box, even if the caller didn't pass `search`.
         $this->search = $search || filled($searchValue);
         $this->searchValue = $searchValue;
-        $this->toolbar = $this->resolveToolbarButtons($toolbar);
+        $this->toolbar = $this->resolveToolbarButtons($toolbar, $table);
         // Explicit `:columns` always wins; `:table` is just a fallback
         // source for tables that keep a single column definition server-side.
         $columns = $columns ?: ($table?->columns() ?? []);
@@ -150,12 +150,13 @@ class TabulatorTable extends Component
      * `tabulator::tabulator.toolbar.<key>` string, when one exists.
      *
      * Bare `toolbar` (Blade resolves the valueless attribute to `true`)
-     * means: use the standard Toolbar::default() set, no per-table array.
+     * means: use `$table->toolbar()` when a `:table` is passed, otherwise
+     * the standard Toolbar::default() set.
      */
-    protected function resolveToolbarButtons(bool|array $toolbar): array
+    protected function resolveToolbarButtons(bool|array $toolbar, ?TabulatorTableSource $table = null): array
     {
         if ($toolbar === true) {
-            $toolbar = Toolbar::default();
+            $toolbar = $table?->toolbar() ?? Toolbar::default();
         }
 
         return collect($toolbar)->map(function (array $btn, string $key) {
