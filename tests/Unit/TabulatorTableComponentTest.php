@@ -2,7 +2,9 @@
 
 namespace Fabamb\LaravelTabulator\Tests\Unit;
 
+use Fabamb\LaravelTabulator\TabulatorTable as TabulatorTableSource;
 use Fabamb\LaravelTabulator\View\Components\TabulatorTable;
+use Illuminate\Database\Eloquent\Builder;
 use Orchestra\Testbench\TestCase;
 
 /**
@@ -125,11 +127,61 @@ class TabulatorTableComponentTest extends TestCase
         $this->assertSame('fitData', $component->config['layout']);
     }
 
+    public function test_table_columns_used_when_columns_prop_omitted(): void
+    {
+        $table = new class extends TabulatorTableSource
+        {
+            public function query(): Builder
+            {
+                throw new \LogicException('not used in this test');
+            }
+
+            public function columns(): array
+            {
+                return [['field' => 'name', 'title' => 'Name']];
+            }
+        };
+
+        $component = new TabulatorTable(table: $table);
+
+        $this->assertSame([['field' => 'name', 'title' => 'Name']], $component->config['columns']);
+    }
+
+    public function test_explicit_columns_prop_overrides_table_columns(): void
+    {
+        $table = new class extends TabulatorTableSource
+        {
+            public function query(): Builder
+            {
+                throw new \LogicException('not used in this test');
+            }
+
+            public function columns(): array
+            {
+                return [['field' => 'name', 'title' => 'Name']];
+            }
+        };
+
+        $component = new TabulatorTable(columns: [['field' => 'email', 'title' => 'Email']], table: $table);
+
+        $this->assertSame([['field' => 'email', 'title' => 'Email']], $component->config['columns']);
+    }
+
     public function test_toolbar_defaults_to_empty(): void
     {
         $component = new TabulatorTable();
 
         $this->assertSame([], $component->toolbar);
+    }
+
+    public function test_toolbar_bare_true_uses_default_set(): void
+    {
+        // Bare `toolbar` (Blade resolves the valueless attribute to true)
+        // means: use the standard Toolbar::default() set.
+        $bare = new TabulatorTable(toolbar: true);
+        $explicit = new TabulatorTable(toolbar: \Fabamb\LaravelTabulator\Toolbar::default());
+
+        $this->assertSame($explicit->toolbar, $bare->toolbar);
     }
 
     public function test_toolbar_keeps_icon_and_explicit_title_no_label(): void

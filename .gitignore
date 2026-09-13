@@ -1,3 +1,6 @@
 vendor/
 composer.lock
 .bumpversion.toml
+.claude/
+.headroom/
+.serena/

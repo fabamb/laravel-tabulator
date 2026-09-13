@@ -51,6 +51,18 @@ abstract class TabulatorTable
     }
 
     /**
+     * Tabulator column definitions for the client component. Optional:
+     * only worth overriding when the same table's columns are reused
+     * across multiple views (index, export, ...) and should have a single
+     * source of truth. Pass `<x-tabulator-table :table="$table">` and omit
+     * `:columns` to use this; an explicit `:columns` still wins.
+     */
+    public function columns(): array
+    {
+        return [];
+    }
+
+    /**
      * Apply filter/sort/pagination from the request and return the
      * Tabulator-compatible JSON response.
      */

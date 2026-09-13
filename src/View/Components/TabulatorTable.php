@@ -2,6 +2,8 @@
 
 namespace Fabamb\LaravelTabulator\View\Components;
 
+use Fabamb\LaravelTabulator\TabulatorTable as TabulatorTableSource;
+use Fabamb\LaravelTabulator\Toolbar;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
@@ -35,7 +37,8 @@ class TabulatorTable extends Component
         bool $search = false,
         ?string $searchValue = null,
         array $options = [],
-        array $toolbar = [],
+        bool|array $toolbar = [],
+        ?TabulatorTableSource $table = null,
     ) {
         $this->id = $id ?? 'tabulator-'.uniqid();
         // A non-empty initial value (e.g. from a navbar search redirect)
@@ -43,6 +46,9 @@ class TabulatorTable extends Component
         $this->search = $search || filled($searchValue);
         $this->searchValue = $searchValue;
         $this->toolbar = $this->resolveToolbarButtons($toolbar);
+        // Explicit `:columns` always wins; `:table` is just a fallback
+        // source for tables that keep a single column definition server-side.
+        $columns = $columns ?: ($table?->columns() ?? []);
         $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $responsive, $options, $searchValue);
     }
 
@@ -142,9 +148,16 @@ class TabulatorTable extends Component
      *   neither         -> no label, no tooltip
      * A missing 'title' falls back to the translated
      * `tabulator::tabulator.toolbar.<key>` string, when one exists.
+     *
+     * Bare `toolbar` (Blade resolves the valueless attribute to `true`)
+     * means: use the standard Toolbar::default() set, no per-table array.
      */
-    protected function resolveToolbarButtons(array $toolbar): array
+    protected function resolveToolbarButtons(bool|array $toolbar): array
     {
+        if ($toolbar === true) {
+            $toolbar = Toolbar::default();
+        }
+
         return collect($toolbar)->map(function (array $btn, string $key) {
             if (! empty($btn['separator'])) {
                 return $btn;
