@@ -120,6 +120,27 @@ class TabulatorTableComponentTest extends TestCase
         $this->assertSame('responsiveCollapse', $component->config['columns'][1]['formatter']);
     }
 
+    public function test_actions_prop_appends_formatter_column_at_the_end(): void
+    {
+        $component = new TabulatorTable(
+            columns: [['field' => 'name', 'title' => 'Name']],
+            actions: 'userActionsFormatter',
+        );
+
+        $this->assertCount(2, $component->config['columns']);
+        $lastColumn = $component->config['columns'][1];
+        $this->assertSame('userActionsFormatter', $lastColumn['formatter']);
+        $this->assertSame(0, $lastColumn['responsive']);
+        $this->assertTrue($lastColumn['frozen']);
+    }
+
+    public function test_actions_omitted_adds_no_extra_column(): void
+    {
+        $component = new TabulatorTable(columns: [['field' => 'name', 'title' => 'Name']]);
+
+        $this->assertCount(1, $component->config['columns']);
+    }
+
     public function test_options_override_generated_config(): void
     {
         $component = new TabulatorTable(options: ['layout' => 'fitData']);

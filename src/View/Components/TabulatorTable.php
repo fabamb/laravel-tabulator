@@ -39,6 +39,7 @@ class TabulatorTable extends Component
         array $options = [],
         bool|array $toolbar = [],
         ?TabulatorTableSource $table = null,
+        ?string $actions = null,
     ) {
         $this->id = $id ?? 'tabulator-'.uniqid();
         // A non-empty initial value (e.g. from a navbar search redirect)
@@ -49,7 +50,7 @@ class TabulatorTable extends Component
         // Explicit `:columns` always wins; `:table` is just a fallback
         // source for tables that keep a single column definition server-side.
         $columns = $columns ?: ($table?->columns() ?? []);
-        $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $responsive, $options, $searchValue);
+        $this->config = $this->buildConfig($columns, $ajaxUrl, $data, $selectable, $rownum, $responsive, $options, $searchValue, $actions);
     }
 
     protected function buildConfig(
@@ -61,9 +62,14 @@ class TabulatorTable extends Component
         bool $responsive,
         array $options,
         ?string $searchValue = null,
+        ?string $actions = null,
     ): array {
         if ($rownum) {
             array_unshift($columns, $this->rownumColumn());
+        }
+
+        if ($actions !== null) {
+            $columns[] = $this->actionsColumn($actions);
         }
 
         // `responsive` is shorthand for the two options responsiveLayout
@@ -194,12 +200,30 @@ class TabulatorTable extends Component
             'titleFormatter' => 'rowSelection',
             'headerSort' => false,
             'resizable' => false,
-            'frozen' => true,
+            'frozen' => config('tabulator.selectable_frozen'),
             'headerHozAlign' => 'center',
             'hozAlign' => 'center',
             'vertAlign' => 'middle',
             'width' => config('tabulator.selectable_width'),
             'widthGrow' => 0,
+            'responsive' => 0,
+        ];
+    }
+
+    protected function actionsColumn(string $formatter): array
+    {
+        return [
+            'formatter' => $formatter,
+            'title' => '',
+            'headerSort' => false,
+            'headerHozAlign' => 'center',
+            'hozAlign' => 'center',
+            'vertAlign' => 'middle',
+            'resizable' => false,
+            'frozen' => config('tabulator.actions_frozen'),
+            'width' => config('tabulator.actions_width'),
+            'widthGrow' => 0,
+            'responsive' => 0,
         ];
     }
 

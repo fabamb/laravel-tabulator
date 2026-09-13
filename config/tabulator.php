@@ -62,8 +62,11 @@ return [
     'search_min_chars' => 2,
     'search_icon' => 'bi bi-search',
 
+    'selectable_frozen' => true,
     'selectable_width' => 30,
     'rownum_width' => 50,
+    'actions_frozen' => true,
+    'actions_width' => 60,
 
     // Tabulator's own UI strings (pagination, header filter placeholder)
     // and the toolbar button tooltips both come from resources/lang/{locale}/tabulator.php

@@ -17,3 +17,16 @@
         ['field' => 'email', 'title' => 'Email'],
     ]"
 />
+
+{{-- Equivalent to variant 2 above, via the `actions` shorthand prop —
+     appends the column for you (frozen, not sortable/resizable, never
+     collapsed by `responsive`), no need to spell it out in :columns. --}}
+<x-tabulator-table
+    id="users-table"
+    ajax-url="{{ route('users.data') }}"
+    :columns="[
+        ['field' => 'name', 'title' => 'Name'],
+        ['field' => 'email', 'title' => 'Email'],
+    ]"
+    actions="rowActionKebab"
+/>

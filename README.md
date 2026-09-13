@@ -110,7 +110,7 @@ class UserTabulatorTable extends TabulatorTable
 Pass the table instance as `:table` and omit `:columns` to use it:
 
 ```blade
-<x-tabulator-table ajax-url="{{ route('users.data') }}" :table="$table" rownum selectable="checkbox" />
+<x-tabulator-table ajax-url="{{ route('users.data') }}" :table="$table" rownum selectable="checkbox" actions="userActionsFormatter" />
 ```
 
 An explicit `:columns` still overrides `:table`'s, per view.
@@ -172,6 +172,7 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | `data` | array\|null | `null` | Local dataset, used when `ajax-url` is not set |
 | `selectable` | bool\|string | `false` | Row selection. Bare `selectable` (`true`) is shorthand for `'both'`. `'checkbox'` — tickbox column only, clicking elsewhere in the row does nothing. `'click'` — clicking anywhere in the row selects it, no column. `'both'` — both at once |
 | `rownum` | bool | `false` | Adds a row-number column (frozen, not sortable) |
+| `actions` | string\|null | `null` | Formatter name for a trailing actions column (frozen, not sortable, never collapsed by `responsive`) — e.g. `actions="userActionsFormatter"` |
 | `responsive` | bool | `false` | Shorthand for `:options="['layout' => config('tabulator.responsive_fixed_layout'), 'responsiveLayout' => 'collapse']"` (see [Configuration reference](#configuration-reference-configtabulatorphp)); an explicit `layout`/`responsiveLayout` in `options` still wins |
 | `search` | bool | `false` | Adds a global search box above the table (see below) |
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
@@ -327,6 +328,12 @@ A per-row action column (View/Edit/Delete, or anything else) is a plain Tabulato
     ['formatter' => 'rowActionButtons', 'title' => '', 'width' => 100, 'headerSort' => false, 'hozAlign' => 'center'],
     ['field' => 'name', 'title' => 'Name'],
 ]"
+```
+
+The `actions` prop is shorthand for exactly that column (frozen, not sortable, not resizable, never collapsed by `responsive`), appended at the end of `columns`:
+
+```blade
+<x-tabulator-table :columns="[['field' => 'name', 'title' => 'Name']]" actions="rowActionButtons" />
 ```
 
 `formatter` as a string is a lookup against Tabulator's own formatter registry (built-ins: `plaintext`, `html`, `money`, ...) — not `window[name]` — so it survives the `:columns` array's PHP-array → `@json()` → JS-object trip as-is; no package-specific resolution needed. Register the custom formatter once, before any `new Tabulator(...)` call:
@@ -570,7 +577,10 @@ Full example: [`examples/localization/`](examples/localization/).
 | `pagination_size_selector` | Options in the page-size dropdown |
 | `pagination_counter` | Tabulator `paginationCounter` value |
 | `selectable_width` | Width (px) of the row-selection checkbox column |
+| `selectable_frozen` | Whether the row-selection checkbox column stays pinned while scrolling horizontally |
 | `rownum_width` | Width (px) of the row-number column |
+| `actions_width` | Width (px) of the `actions` prop's trailing column |
+| `actions_frozen` | Whether the `actions` prop's trailing column stays pinned while scrolling horizontally |
 | `locale` | Active locale, used to load `resources/lang/{locale}/tabulator.php` for both Tabulator's own UI strings and toolbar tooltips (`en`/`it` ship built in); set to `false` to keep Tabulator's built-in English |
 | `toolbar_button_class` | Default Bootstrap class for toolbar buttons (default `btn-secondary`); override per button with `class` |
 | `toolbar_button_size_class` | Bootstrap size class for toolbar buttons |
