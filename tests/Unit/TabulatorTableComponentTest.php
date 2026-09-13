@@ -184,6 +184,66 @@ class TabulatorTableComponentTest extends TestCase
         $this->assertSame($explicit->toolbar, $bare->toolbar);
     }
 
+    public function test_toolbar_bare_true_with_table_uses_table_toolbar(): void
+    {
+        $table = new class extends TabulatorTableSource
+        {
+            public function query(): Builder
+            {
+                throw new \LogicException('not used in this test');
+            }
+
+            public function toolbar(): array
+            {
+                return ['reload' => ['icon' => 'fas fa-sync']];
+            }
+        };
+
+        $component = new TabulatorTable(toolbar: true, table: $table);
+
+        $this->assertArrayHasKey('reload', $component->toolbar);
+        $this->assertArrayNotHasKey('csv', $component->toolbar);
+    }
+
+    public function test_explicit_toolbar_prop_overrides_table_toolbar(): void
+    {
+        $table = new class extends TabulatorTableSource
+        {
+            public function query(): Builder
+            {
+                throw new \LogicException('not used in this test');
+            }
+
+            public function toolbar(): array
+            {
+                return ['reload' => ['icon' => 'fas fa-sync']];
+            }
+        };
+
+        $component = new TabulatorTable(toolbar: ['csv' => ['icon' => 'fas fa-file-csv']], table: $table);
+
+        $this->assertArrayHasKey('csv', $component->toolbar);
+        $this->assertArrayNotHasKey('reload', $component->toolbar);
+    }
+
+    public function test_table_with_default_toolbar_hook_used_when_bare_toolbar_true(): void
+    {
+        // Base TabulatorTable::toolbar() returns Toolbar::default(), so bare
+        // `toolbar` gives the same result with or without an (unoverridden) :table.
+        $table = new class extends TabulatorTableSource
+        {
+            public function query(): Builder
+            {
+                throw new \LogicException('not used in this test');
+            }
+        };
+
+        $withTable = new TabulatorTable(toolbar: true, table: $table);
+        $withoutTable = new TabulatorTable(toolbar: true);
+
+        $this->assertSame($withoutTable->toolbar, $withTable->toolbar);
+    }
+
     public function test_toolbar_keeps_icon_and_explicit_title_no_label(): void
     {
         $toolbar = ['reload' => ['icon' => 'fas fa-sync', 'title' => 'Reload']];

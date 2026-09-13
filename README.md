@@ -117,6 +117,37 @@ An explicit `:columns` still overrides `:table`'s, per view.
 
 Full example: [`examples/server-columns/`](examples/server-columns/).
 
+## Server-side toolbar definitions
+
+Same idea as `columns()`, for tables reused across multiple views that would otherwise repeat the same `:toolbar` array everywhere. Three ways to define a toolbar, pick whichever fits:
+
+1. **Local, view-only** — the usual `:toolbar="[...]"` array, or bare `toolbar` (uses `Toolbar::default()`). Nothing to override.
+2. **Server-side, extending the default** — override `toolbar()` on the table class, starting from `parent::toolbar()`:
+
+   ```php
+   class UserTabulatorTable extends TabulatorTable
+   {
+       public function toolbar(): array
+       {
+           return parent::toolbar() + [
+               'export-pdf' => ['icon' => 'fas fa-file-pdf', 'title' => 'Export PDF', 'url' => route('users.export-pdf')],
+           ];
+       }
+   }
+   ```
+
+3. **Server-side, fully custom** — override `toolbar()` without calling `parent::toolbar()`, returning only what that table needs.
+
+Pass `:table` with bare `toolbar` to use whichever `toolbar()` the table defines:
+
+```blade
+<x-tabulator-table ajax-url="{{ route('users.data') }}" :table="$table" toolbar />
+```
+
+An explicit `:toolbar` array on the view still overrides `:table`'s, same precedence as `:columns`. `Toolbar::default()` also remains callable directly from the view at any time (e.g. `:toolbar="\Fabamb\LaravelTabulator\Toolbar::default() + [...]"`), `:table` doesn't take that away.
+
+Full example: [`examples/server-toolbar/`](examples/server-toolbar/).
+
 ## Local data (no server round-trip)
 
 Pass `data` instead of `ajax-url` for a client-side table (pagination/sort/filter all happen in the browser):
@@ -136,7 +167,7 @@ Full example: [`examples/local-data/`](examples/local-data/).
 |---|---|---|---|
 | `id` | string | auto-generated | DOM id of the table container |
 | `columns` | array | `[]` | Tabulator column definitions, passed through as-is. Overrides `table`'s `columns()` when both are set |
-| `table` | `TabulatorTable`\|null | `null` | Table instance to pull columns from via its `columns()` (see [Server-side column definitions](#server-side-column-definitions)), when `columns` isn't passed |
+| `table` | `TabulatorTable`\|null | `null` | Table instance to pull `columns()` from when `columns` isn't passed (see [Server-side column definitions](#server-side-column-definitions)), and `toolbar()` from when bare `toolbar` is passed (see [Server-side toolbar definitions](#server-side-toolbar-definitions)) |
 | `ajax-url` | string\|null | `null` | Enables remote mode (pagination/sort/filter sent to the server) |
 | `data` | array\|null | `null` | Local dataset, used when `ajax-url` is not set |
 | `selectable` | bool\|string | `false` | Row selection. Bare `selectable` (`true`) is shorthand for `'both'`. `'checkbox'` — tickbox column only, clicking elsewhere in the row does nothing. `'click'` — clicking anywhere in the row selects it, no column. `'both'` — both at once |
@@ -145,7 +176,7 @@ Full example: [`examples/local-data/`](examples/local-data/).
 | `search` | bool | `false` | Adds a global search box above the table (see below) |
 | `search-value` | string\|null | `null` | Pre-fills the search box and applies it as Tabulator's `initialFilter` on load (e.g. from a navbar search redirect). Implies `search`. |
 | `options` | array | `[]` | Raw Tabulator options, merged last — overrides anything the component computed |
-| `toolbar` | array\|bool | `[]` | Buttons shown above the table (see [Toolbar buttons](#toolbar-buttons)). Bare `toolbar` (`true`) uses the standard `Toolbar::default()` set |
+| `toolbar` | array\|bool | `[]` | Buttons shown above the table (see [Toolbar buttons](#toolbar-buttons)). Bare `toolbar` (`true`) uses `table`'s `toolbar()` when `table` is set, otherwise the standard `Toolbar::default()` set. Overrides `table`'s `toolbar()` when both are set |
 
 `options` is an escape hatch for any Tabulator setting not covered by a dedicated prop:
 
