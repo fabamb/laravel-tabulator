@@ -1,3 +1,11 @@
+## [0.5.0] - 2026-09-14
+
+### Features
+
+- Add server-side toolbar definitions via TabulatorTable::toolbar()
+- Add actions shorthand prop for trailing formatter column
+- *(tabulator)* Support Collection-backed data via of()
+
 ## [0.4.2] - 2026-09-13
 
 ### Features
