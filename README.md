@@ -83,6 +83,36 @@ Route::get('/users/data', function (App\Tabulator\UserTabulatorTable $table, Ill
 
 Full example: [`examples/remote-basic/`](examples/remote-basic/).
 
+## Non-Eloquent data source
+
+`query()` isn't the only way to feed a table. When the data doesn't come from the database (a filesystem scan, an API response, anything already reduced to a plain array/Collection), call `of()` with a `Collection` instead of overriding `query()`. `toResponse()` then filters/sorts/paginates that collection in-memory and never calls `query()`:
+
+```php
+class LogFileTabulatorTable extends TabulatorTable
+{
+    protected function searchableFields(): array
+    {
+        return ['name'];
+    }
+}
+```
+
+```php
+Route::get('/logs/data', function (Request $request) {
+    $files = collect(Storage::disk('logs')->files())->map(fn (string $path) => [
+        'id' => $path,
+        'name' => basename($path),
+        'size' => Storage::disk('logs')->size($path),
+    ]);
+
+    return (new LogFileTabulatorTable())->of($files)->toResponse($request);
+})->name('logs.data');
+```
+
+Filter types, `__global`/`searchableFields()`, sorting and the `size=true` "all rows" case all behave the same as the query-backed path — `field.dot` relation filtering is the one exception, it's SQL-only (`whereHas`) and has no in-memory equivalent. `transformer()` and `addScope()` are unaffected by the choice; scopes just don't apply when the collection path is used, since there's no query to scope.
+
+Full example: [`examples/collection-source/`](examples/collection-source/).
+
 ## Server-side column definitions
 
 Columns are normally passed inline via `:columns` (they're just Tabulator's own JS config). When the same table's columns are reused across multiple views (index, export, ...) and duplicating the array risks drift, override `columns()` on the table class instead — same idea as `transformer()`:

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Base class for Tabulator remote data sources.
@@ -23,9 +24,31 @@ abstract class TabulatorTable
     protected array $scopes = [];
 
     /**
-     * Data source for the table.
+     * Non-Eloquent data source, set via of(). When present, toResponse()
+     * filters/sorts/paginates this collection in-memory instead of calling
+     * query(); query() is not invoked at all.
      */
-    abstract public function query(): Builder;
+    protected ?Collection $collection = null;
+
+    /**
+     * Data source for the table. Not called when of() supplied a collection.
+     */
+    public function query(): Builder
+    {
+        throw new \LogicException(static::class.' must override query() or call of() with a Collection.');
+    }
+
+    /**
+     * Use a plain Collection as the data source instead of an Eloquent
+     * query, e.g. for data assembled outside the database (filesystem
+     * scans, API results). Mirrors Yajra DataTable's of().
+     */
+    public function of(Collection $collection): static
+    {
+        $this->collection = $collection;
+
+        return $this;
+    }
 
     /**
      * Register a scope to apply to the query, e.g. from a controller
@@ -82,6 +105,10 @@ abstract class TabulatorTable
      */
     public function toResponse(Request $request): JsonResponse
     {
+        if ($this->collection !== null) {
+            return $this->collectionResponse($request);
+        }
+
         $query = $this->query();
 
         foreach ($this->scopes as $scope) {
@@ -202,5 +229,107 @@ abstract class TabulatorTable
         }
 
         return $query;
+    }
+
+    /**
+     * Collection counterpart of toResponse()'s query pipeline: filter, sort,
+     * paginate in-memory, same request shape and JSON response as the
+     * Eloquent path.
+     */
+    protected function collectionResponse(Request $request): JsonResponse
+    {
+        $items = $this->applyFiltersToCollection($this->collection, $request->input('filter', []));
+        $items = $this->applySortToCollection($items, $request->input('sort', []));
+
+        $transformer = $this->transformer();
+
+        $sizeInput = $request->input('size', config('tabulator.pagination_size'));
+        if (! is_numeric($sizeInput)) {
+            return response()->json([
+                'last_page' => 1,
+                'data' => $transformer ? $items->map($transformer)->values()->all() : $items->values()->all(),
+            ]);
+        }
+
+        $size = max(1, (int) $sizeInput);
+        $page = max(1, (int) $request->input('page', 1));
+        $lastPage = max(1, (int) ceil($items->count() / $size));
+        $pageItems = $items->slice(($page - 1) * $size, $size)->values();
+
+        return response()->json([
+            'last_page' => $lastPage,
+            'data' => $transformer ? $pageItems->map($transformer)->all() : $pageItems->all(),
+        ]);
+    }
+
+    /**
+     * Collection counterpart of applyFilters(). Same filter shape
+     * (field/type/value, __global via searchableFields()); comparisons run
+     * in PHP instead of SQL.
+     */
+    protected function applyFiltersToCollection(Collection $items, array $filters): Collection
+    {
+        foreach ($filters as $filter) {
+            $field = $filter['field'] ?? null;
+            $type = $filter['type'] ?? '=';
+            $value = $filter['value'] ?? null;
+
+            if ($field === null) {
+                continue;
+            }
+
+            if ($field === '__global') {
+                $fields = $this->searchableFields();
+                if ($fields !== []) {
+                    $items = $items->filter(function ($item) use ($fields, $value) {
+                        foreach ($fields as $f) {
+                            if (str_contains(strtolower((string) data_get($item, $f)), strtolower((string) $value))) {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    });
+                }
+
+                continue;
+            }
+
+            $items = $items->filter(function ($item) use ($field, $type, $value) {
+                $itemValue = data_get($item, $field);
+
+                return match ($type) {
+                    'like' => str_contains(strtolower((string) $itemValue), strtolower((string) $value)),
+                    'in' => in_array($itemValue, (array) $value),
+                    '<' => $itemValue < $value,
+                    '<=' => $itemValue <= $value,
+                    '>' => $itemValue > $value,
+                    '>=' => $itemValue >= $value,
+                    default => $itemValue == $value,
+                };
+            });
+        }
+
+        return $items;
+    }
+
+    /**
+     * Collection counterpart of applySort(). Multiple sorters apply in
+     * reverse so the first sorter remains primary (PHP's sort is stable).
+     */
+    protected function applySortToCollection(Collection $items, array $sorters): Collection
+    {
+        foreach (array_reverse($sorters) as $sorter) {
+            $field = $sorter['field'] ?? null;
+            $dir = $sorter['dir'] ?? 'asc';
+
+            if ($field === null) {
+                continue;
+            }
+
+            $items = $dir === 'desc' ? $items->sortByDesc($field) : $items->sortBy($field);
+        }
+
+        return $items;
     }
 }

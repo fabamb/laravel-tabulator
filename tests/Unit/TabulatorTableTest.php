@@ -197,6 +197,61 @@ class TabulatorTableTest extends TestCase
         );
     }
 
+    public function test_of_collection_filters_sorts_and_paginates(): void
+    {
+        $table = (new WidgetTabulatorTable())->of(collect([
+            ['id' => 1, 'name' => 'Oli Bob', 'age' => 12],
+            ['id' => 2, 'name' => 'Mary May', 'age' => 42],
+            ['id' => 3, 'name' => 'Christine', 'age' => 42],
+            ['id' => 4, 'name' => 'Brendon', 'age' => 16],
+        ]));
+
+        $request = Request::create('/', 'GET', [
+            'filter' => [['field' => 'age', 'type' => '=', 'value' => 42]],
+            'sort' => [['field' => 'name', 'dir' => 'asc']],
+            'page' => 1,
+            'size' => 10,
+        ]);
+
+        $payload = $table->toResponse($request)->getData(true);
+
+        $this->assertSame(1, $payload['last_page']);
+        $this->assertCount(2, $payload['data']);
+        $this->assertSame('Christine', $payload['data'][0]['name']);
+        $this->assertSame('Mary May', $payload['data'][1]['name']);
+    }
+
+    public function test_of_collection_never_calls_query(): void
+    {
+        $table = (new class extends TabulatorTable {
+            public function query(): Builder
+            {
+                throw new \RuntimeException('query() should not be called when of() is used');
+            }
+        })->of(collect([['id' => 1, 'name' => 'Solo']]));
+
+        $payload = $table->toResponse(Request::create('/', 'GET'))->getData(true);
+
+        $this->assertCount(1, $payload['data']);
+    }
+
+    public function test_of_collection_global_search_and_page_size(): void
+    {
+        $table = (new SearchableWidgetTabulatorTable())->of(collect([
+            ['id' => 1, 'name' => 'Oli Bob', 'age' => 12],
+            ['id' => 2, 'name' => 'Mary May', 'age' => 42],
+        ]));
+
+        $request = Request::create('/', 'GET', [
+            'filter' => [['field' => '__global', 'type' => 'like', 'value' => 'mary']],
+        ]);
+
+        $payload = $table->toResponse($request)->getData(true);
+
+        $this->assertCount(1, $payload['data']);
+        $this->assertSame('Mary May', $payload['data'][0]['name']);
+    }
+
 }
 
 class AgeOver40Scope implements Scope
