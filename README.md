@@ -368,6 +368,8 @@ The `actions` prop is shorthand for exactly that column (frozen, not sortable, n
 
 `formatter` as a string is a lookup against Tabulator's own formatter registry (built-ins: `plaintext`, `html`, `money`, ...) — not `window[name]` — so it survives the `:columns` array's PHP-array → `@json()` → JS-object trip as-is; no package-specific resolution needed. Register the custom formatter once, before any `new Tabulator(...)` call:
 
+> **Push order matters.** `<x-tabulator-table>` itself does a `@push(config('tabulator.stack'))` containing the `new Tabulator(...)` call, at the exact point the component tag appears in your view. Tabulator resolves a string `formatter` against its registry synchronously at that construction call — if the name isn't registered yet, it warns `Formatter Error - No such formatter found` and permanently falls back to `plaintext` for that column (no retry later). `@stack` renders all pushed `<script>` blocks in one place, but in the *order they were pushed*, so your own `@push('js')` registering the formatter must appear **before** the `<x-tabulator-table>` tag in the source, not after.
+
 ```js
 // resources/js/tabulator-formatters.js, imported by resources/js/app.js.
 Tabulator.extendModule('format', 'formatters', {
@@ -402,7 +404,7 @@ This copies it to `public/vendor/tabulator/row-actions.js` — a plain global (`
 import '/vendor/tabulator/row-actions.js';
 ```
 
-Then, per table, define the actions config and register the formatter — same `Tabulator.extendModule` call as any custom formatter:
+Then, per table, define the actions config and register the formatter — same `Tabulator.extendModule` call as any custom formatter (same push-order rule as [above](#row-actions): this `@push('js')` block must come before `<x-tabulator-table>`):
 
 ```blade
 @push('js')
