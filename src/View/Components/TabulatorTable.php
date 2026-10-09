@@ -73,9 +73,9 @@ class TabulatorTable extends Component
         }
 
         // `responsive` is shorthand for the two options responsiveLayout
-        // 'collapse' needs together (see README): a fixed-width layout
-        // (fitColumns would just shrink columns instead of ever
-        // overflowing, so collapse never triggers) plus the option itself.
+        // 'collapse' needs together (see README): the layout to collapse
+        // against (fitColumns collapses once the fixed widths plus the
+        // flexible columns' minWidth no longer fit) plus the option itself.
         // Per-table `:options` still wins over both when set explicitly.
         $layout = $options['layout'] ?? ($responsive ? config('tabulator.responsive_fixed_layout') : config('tabulator.layout'));
         $responsiveLayout = $options['responsiveLayout'] ?? ($responsive ? 'collapse' : config('tabulator.responsive_layout'));

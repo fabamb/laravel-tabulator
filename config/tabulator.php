@@ -16,10 +16,12 @@ return [
     'responsive_layout' => false,
 
     // Layout used by <x-tabulator-table responsive ... /> (see README).
-    // Must be a fixed-width mode — the default 'layout' above ('fitColumns')
-    // shrinks every column to always fit instead of ever overflowing, so
-    // responsive_layout's 'collapse'/'hide' would never trigger.
-    'responsive_fixed_layout' => 'fitDataFill',
+    // With 'fitColumns' a column collapses only once the fixed widths plus
+    // every flexible column's minWidth (Tabulator default 40px) no longer
+    // fit: give the flexible columns a realistic 'minWidth', or they shrink
+    // to 40px before anything collapses. fitData* modes collapse on the
+    // content width instead, but leave the unused space at the row end.
+    'responsive_fixed_layout' => 'fitColumns',
 
     //
     'pagination_size' => 10,

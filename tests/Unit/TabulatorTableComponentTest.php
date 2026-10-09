@@ -94,11 +94,11 @@ class TabulatorTableComponentTest extends TestCase
         $this->assertSame('responsiveCollapse', $component->config['columns'][0]['formatter']);
     }
 
-    public function test_responsive_shorthand_sets_fixed_layout_and_collapse(): void
+    public function test_responsive_shorthand_sets_responsive_layout_and_collapse(): void
     {
         $component = new TabulatorTable(responsive: true);
 
-        $this->assertSame('fitDataFill', $component->config['layout']);
+        $this->assertSame('fitColumns', $component->config['layout']);
         $this->assertSame('collapse', $component->config['responsiveLayout']);
     }
 

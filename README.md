@@ -603,8 +603,8 @@ Full example: [`examples/localization/`](examples/localization/).
 | `stack` | Blade `@push` stack the component's `<script>` goes into (must match a `@stack` in your layout) |
 | `layout` | Tabulator `layout` option (default `fitColumns`) |
 | `movable_columns` | Tabulator `movableColumns` option (default `true`) |
-| `responsive_layout` | Tabulator `responsiveLayout` option (default `false`); set to `'collapse'` to hide columns that no longer fit behind a per-row expand arrow (the component adds the `responsiveCollapse` toggle column for it automatically — coexists fine with `selectable`'s own column), or `'hide'` to just drop them. **Requires `layout` to be a fixed-width mode** (`fitData`/`fitDataFill`/`fitDataStretch`) — the default `fitColumns` shrinks every column to always fit instead of ever overflowing, so `collapse`/`hide` never trigger. The `responsive` prop below sets both together automatically |
-| `responsive_fixed_layout` | `layout` used when the `responsive` prop is set (default `fitDataFill`) |
+| `responsive_layout` | Tabulator `responsiveLayout` option (default `false`); set to `'collapse'` to hide columns that no longer fit behind a per-row expand arrow (the component adds the `responsiveCollapse` toggle column for it automatically — coexists fine with `selectable`'s own column), or `'hide'` to just drop them. With `fitColumns` a column is hidden only once the fixed widths plus every flexible column's `minWidth` (Tabulator default 40px) no longer fit, so give the flexible columns a realistic `minWidth` or they shrink to 40px before anything collapses; the `fitData*` modes collapse on the content width instead, but leave the unused space at the end of the row. The `responsive` prop below sets both together automatically |
+| `responsive_fixed_layout` | `layout` used when the `responsive` prop is set (default `fitColumns`) |
 | `pagination_size` | Default page size |
 | `pagination_size_selector` | Options in the page-size dropdown |
 | `pagination_counter` | Tabulator `paginationCounter` value |
