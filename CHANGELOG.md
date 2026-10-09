@@ -1,3 +1,13 @@
+## [0.5.1] - 2026-10-09
+
+### Bug Fixes
+
+- Correct responsive layout default and behavior documentation
+
+### Documentation
+
+- Clarify push-order requirement for Tabulator formatter registration
+
 ## [0.5.0] - 2026-09-14
 
 ### Features
